@@ -681,11 +681,10 @@ export default function TableTennisChess() {
   // ── RPM 게이지 렌더러 ──
   // ── 속도 위젯 (왼쪽 상단) ──
   const renderSpeedWidget = () => {
-    if (!ball) return null;
-    const speed = BALL_SPEED[ball.spin] ?? 0;
+    const speed = ball ? (ball.speed ?? BALL_SPEED[ball.spin] ?? 0) : 0;
     const pct   = speed / MAX_SPEED; // 0~1
-    const meta  = spinMeta[ball.spin] || spinMeta.BACKSPIN;
-    const col   = meta.color;
+    const meta  = ball ? (spinMeta[ball.spin] || spinMeta.BACKSPIN) : null;
+    const col   = meta ? meta.color : 'rgba(148,163,184,0.3)';
     // 스피드미터: 반원 호 (아래 반원 제외, 왼쪽 하단 → 오른쪽 하단, 210°~330° 범위)
     const S = 72, cx = 36, cy = 40;
     const R = 26;
@@ -739,11 +738,10 @@ export default function TableTennisChess() {
 
   // ── 360도 회전 화살표 스핀 위젯 ──
   const renderSpinWidget = () => {
-    if (!ball) return null;
-    const rpm = SPIN_RPM[ball.spin] ?? 0;
+    const rpm = ball ? (SPIN_RPM[ball.spin] ?? 0) : 0;
     const absRpm = Math.abs(rpm);
-    const meta = spinMeta[ball.spin] || spinMeta.BACKSPIN;
-    const spinColor = meta.color;
+    const meta = ball ? (spinMeta[ball.spin] || spinMeta.BACKSPIN) : spinMeta.BACKSPIN;
+    const spinColor = ball ? meta.color : 'rgba(148,163,184,0.3)';
     const rpmText = absRpm >= 100 ? `${absRpm.toLocaleString()} RPM` : '0 RPM';
     // 스핀 종류별 화살표 각도 (0°=위/상회전, 시계방향)
     const SPIN_ANGLE = {
@@ -753,7 +751,7 @@ export default function TableTennisChess() {
       SIDESPIN_BACK:135, SIDESPIN_TOP:45,
       KNUCKLE:null, FLOAT:null,
     };
-    const angle = SPIN_ANGLE[ball.spin];
+    const angle = ball ? SPIN_ANGLE[ball.spin] : null;
     const S = 72, cx = 36, cy = 36, arrowLen = 22;
     // 화살표 끝점 계산 (각도 → 좌표, 0°=위)
     const rad = angle != null ? (angle - 90) * Math.PI / 180 : 0;
@@ -954,7 +952,7 @@ export default function TableTennisChess() {
             {/* 상대 점수 (왼쪽) — 속도 위젯 + 히스토리 위, 점수 아래 */}
             <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',gap:'4px',paddingBottom:'4px',overflow:'hidden' }}>
               {/* 속도 위젯 */}
-              {ball && <div style={{ marginBottom:'2px' }}>{renderSpeedWidget()}</div>}
+              <div style={{ marginBottom:'2px' }}>{renderSpeedWidget()}</div>
               <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',gap:'2px',width:'100%',overflow:'hidden',marginBottom:'2px' }}>
                 {opponentHistory.map((h,i) => (
                   <span key={i} style={{ fontSize:'8px',color:i===0?'#fca5a5':'rgba(148,163,184,0.45)',fontWeight:i===0?700:400,textAlign:'center',lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:'100%' }}>{h.label}</span>
@@ -969,7 +967,7 @@ export default function TableTennisChess() {
             {/* 내 점수 (오른쪽) — 스핀 위젯 + 히스토리 위, 점수 아래 */}
             <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',gap:'4px',paddingBottom:'4px',overflow:'hidden' }}>
               {/* 360도 회전 화살표 스핀 위젯 */}
-              {ball && <div style={{ marginBottom:'2px' }}>{renderSpinWidget()}</div>}
+              <div style={{ marginBottom:'2px' }}>{renderSpinWidget()}</div>
               <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',gap:'2px',width:'100%',overflow:'hidden',marginBottom:'2px' }}>
                 {moveHistory.map((h,i) => (
                   <span key={i} style={{ fontSize:'8px',color:i===0?'#93c5fd':'rgba(148,163,184,0.45)',fontWeight:i===0?700:400,textAlign:'center',lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:'100%' }}>
