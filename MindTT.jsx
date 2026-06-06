@@ -676,11 +676,16 @@ export default function TableTennisChess() {
 
           {/* 로그 */}
           <div style={{ height:'110px',background:'rgba(2,6,23,0.92)',borderRadius:'10px',padding:'6px 12px',overflowY:'auto',fontSize:'12px',border:'1px solid rgba(148,163,184,0.1)',display:'flex',flexDirection:'column',gap:'2px' }}>
-            {logs.map((log, i) => (
-              <div key={i} style={{ color:log.type==='player'?'#93c5fd':log.type==='opponent'?'#fca5a5':'#fde68a', fontWeight:log.type==='system'||log.type==='levelup'?700:400, textAlign:log.type==='system'||log.type==='levelup'?'center':'left', padding:log.type==='system'||log.type==='levelup'?'2px 0':0 }}>
-                {log.text}
+            {logs.map((log, i) => {
+              const isLatest = i === logs.length - 1;
+              const isCenter = log.type==='system'||log.type==='levelup';
+              return (
+              <div key={i} style={{ color:log.type==='player'?'#93c5fd':log.type==='opponent'?'#fca5a5':'#fde68a', fontWeight:isLatest||isCenter?700:400, textAlign:isCenter?'center':'left', padding:isCenter?'2px 0':0, display:'flex', alignItems:'center', gap:'4px', justifyContent:isCenter?'center':'flex-start' }}>
+                {isLatest && <span style={{ color:'#fbbf24', fontWeight:900, flexShrink:0 }}>{'<<'}</span>}
+                <span>{log.text}</span>
               </div>
-            ))}
+              );
+            })}
             <div ref={logsEndRef} />
           </div>
 
