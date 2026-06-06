@@ -969,20 +969,11 @@ export default function TableTennisChess() {
               <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',width:'100%' }}>
                 {buttons.map(({ label, action, color, sub, full }) => {
                   const lv = skills[action]?.lv ?? 1;
-                  const lvPct  = Math.round(lvBonus(lv) * 100);
-                  const spdMod = getSpeedModifier(action, ball?.spin);
-                  const spdPct = Math.round(spdMod * 100);
                   return (
                   <button key={action} onClick={() => handlePlayerAction(action)} className="gbtn"
                     style={{ ...btnBase, gridColumn:full?'1/-1':undefined, padding:action==='SMASH'?'16px':'11px 8px', background:color, color:action==='SMASH'?'#000':'#fff', fontSize:'13px', border:action==='BLOCK'?'2px solid #0ea5e9':action==='COUNTER_DRIVE'?'2px solid #7c3aed':'none', boxShadow:action==='SMASH'?'0 0 20px rgba(234,179,8,0.4)':'none' }}>
                     {label}
                     {sub && <><br /><span style={{ fontWeight:400,opacity:0.75,fontSize:'10px' }}>{sub}</span></>}
-                    {(lvPct > 0 || spdPct !== 0) && (
-                      <><br /><span style={{ fontWeight:700,fontSize:'10px' }}>
-                        {lvPct > 0 && <span style={{ color:'#6ee7b7' }}>+{lvPct}%</span>}
-                        {spdPct !== 0 && <span style={{ color: spdPct > 0 ? '#34d399' : '#f87171', marginLeft: lvPct > 0 ? '3px' : 0 }}>{spdPct > 0 ? `+${spdPct}` : spdPct}%</span>}
-                      </span></>
-                    )}
                   </button>
                   );
                 })}
