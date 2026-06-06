@@ -784,16 +784,16 @@ export default function TableTennisChess() {
         <div style={{ width:'100%',maxWidth:'480px',display:'flex',flexDirection:'column',gap:'6px' }}>
           {/* 탁구대 + 양옆 점수 */}
           <div style={{ display:'flex',alignItems:'stretch',gap:'6px' }}>
-            {/* 상대 점수 (왼쪽) — 점수 위, 히스토리 아래 */}
-            <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-start',gap:'4px',paddingTop:'4px',overflow:'hidden' }}>
-              <span style={{ fontSize:'11px',color:'#94a3b8' }}>상대</span>
-              <span style={{ fontSize:'32px',fontWeight:900,color:'#f87171',lineHeight:1 }}>{score.opponent}</span>
-              {server==='OPPONENT' && <span style={{ fontSize:'16px' }}>🏓</span>}
-              <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',width:'100%',overflow:'hidden',marginTop:'2px' }}>
+            {/* 상대 점수 (왼쪽) — 히스토리 위, 점수 아래 */}
+            <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',gap:'4px',paddingBottom:'4px',overflow:'hidden' }}>
+              <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',gap:'2px',width:'100%',overflow:'hidden',marginBottom:'2px' }}>
                 {opponentHistory.map((h,i) => (
                   <span key={i} style={{ fontSize:'8px',color:i===0?'#fca5a5':'rgba(148,163,184,0.45)',fontWeight:i===0?700:400,textAlign:'center',lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:'100%' }}>{h.label}</span>
                 ))}
               </div>
+              <span style={{ fontSize:'11px',color:'#94a3b8' }}>상대</span>
+              <span style={{ fontSize:'32px',fontWeight:900,color:'#f87171',lineHeight:1 }}>{score.opponent}</span>
+              {server==='OPPONENT' && <span style={{ fontSize:'16px' }}>🏓</span>}
             </div>
             {/* 탁구대 */}
             <div style={{ flex:'0 0 56%' }}>{renderTableWithPath()}</div>
