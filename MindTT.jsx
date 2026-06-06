@@ -632,8 +632,6 @@ export default function TableTennisChess() {
             {/* 글로우 효과 */}
             <circle cx={cx} cy={cy} r={34} fill="none" stroke={spinColor} strokeWidth="8" strokeOpacity="0.06"/>
           </svg>
-          {/* 공 (가운데 작은 원) */}
-          <div style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)', width:'16px', height:'16px', borderRadius:'50%', background:spinColor, boxShadow:`0 0 10px 4px ${meta.glow}`, opacity:0.9 }} />
           {/* 회전 화살표 */}
           {angle != null ? (
             <svg width={S} height={S} style={{ position:'absolute', inset:0, pointerEvents:'none' }}>
