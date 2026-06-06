@@ -64,7 +64,7 @@ const MAX_RPM = 5500;   // 프로 최대 ~9,000 × 0.6
 const BALL_SPEED = {
   FAST_TOP:      90,  // 빠른 상회전 서브
   POWER_SPIN:    85,  // 파워 드라이브
-  LOOP_SPIN:     72,  // 루프
+  LOOP_SPIN:     48,  // 루프 (회전량 많고 속도 느림)
   TOPSPIN:       68,  // 일반 드라이브
   LONG_BACK:     58,  // 긴 하회전
   LONG_SIDE:     56,  // 긴 횡회전
