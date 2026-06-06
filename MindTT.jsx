@@ -528,10 +528,12 @@ export default function TableTennisChess() {
     const cellH = 90, cellW = 100, W = 200, H = 360;
     const haspath = ball?.fromRow !== undefined && ball?.fromCol !== undefined;
     const pathEl = haspath ? (() => {
+      // 공 셀: ball(26px) + gap(4px) + label(~12px) = 42px → 셀(90px) 중앙보다 8px 위에 공 중심
+      const BALL_OFFSET = 8;
       const fx = ball.fromCol * cellW + cellW / 2;
-      const fy = ball.fromRow * cellH + cellH / 2;
+      const fy = ball.fromRow * cellH + cellH / 2 - BALL_OFFSET;
       const tx = ball.col * cellW + cellW / 2;
-      const ty = ball.row * cellH + cellH / 2;
+      const ty = ball.row * cellH + cellH / 2 - BALL_OFFSET;
       const isCross = ball.fromCol !== ball.col;
       const sc = isCross ? '#34d399' : '#fbbf24';
       const sc2 = isCross ? '#6ee7b7' : '#fde68a';
