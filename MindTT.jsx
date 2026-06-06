@@ -818,7 +818,7 @@ export default function TableTennisChess() {
     if (row===2 && (spin==='BLOCK_RETURN'||spin==='FLOAT')) return [mk('💥 스매시 찬스!','SMASH','#854d0e',null,true)];
 
     // 긴공 리시브
-    const longBackBtns = [mk('맞커트','CUT','#334155','안전 수비'), mk('🔥 드라이브','DRIVE','#9a3412','방향 선택'), mk('🌀 루프','LOOP','#b45309','강한 회전'), mk('💥 파워드라이브','POWER_DRIVE','#7f1d1d','강타'), mk('🔵 BH드라이브','BH_DRIVE','#1e40af','백핸드'), mk('쇼트 ⚠','SHORT_BLOCK','#1e3a5f','짧게 되돌리기'), mk('스톱 ⚠','STOP','#1e293b','어려움')];
+    const longBackBtns = [mk('맞커트','CUT','#334155','안전 수비'), mk('🔥 드라이브','DRIVE','#9a3412','방향 선택'), mk('🌀 루프','LOOP','#b45309','강한 회전'), mk('💥 파워드라이브','POWER_DRIVE','#7f1d1d','강타'), mk('쇼트 ⚠','SHORT_BLOCK','#1e3a5f','짧게 되돌리기'), mk('스톱 ⚠','STOP','#1e293b','어려움')];
     if (row===3 && (spin==='BACKSPIN'||spin==='LONG_BACK'||spin==='SIDESPIN_BACK')) return longBackBtns;
     if (row===3 && (spin==='SIDESPIN'||spin==='LONG_SIDE')) return [mk('맞커트','CUT','#334155','방향 주의'), mk('🔥 드라이브','DRIVE','#9a3412','방향 선택'), mk('🌀 루프','LOOP','#b45309','강한 회전')];
     if (row===3 && spin==='KNUCKLE') return [mk('맞커트','CUT','#334155','⚠불규칙'), mk('🔥 드라이브','DRIVE','#9a3412','⚠어려움')];
