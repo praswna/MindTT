@@ -66,7 +66,8 @@ export default function TableTennisChess() {
   const [skills, setSkills]               = useState(initSkillData());
   const [levelUpFlash, setLevelUpFlash]   = useState(null);
   const [serveTab, setServeTab]           = useState('SHORT'); // 'SHORT' | 'LONG'
-  const [moveHistory, setMoveHistory]     = useState([]);
+  const [moveHistory, setMoveHistory]         = useState([]);
+  const [opponentHistory, setOpponentHistory] = useState([]);
   const logsEndRef = useRef(null);
 
   useEffect(() => {
@@ -74,7 +75,11 @@ export default function TableTennisChess() {
   }, [logs]);
 
   const addLog = (msg, type = 'system') => setLogs(p => [...p, { text: msg, type }]);
-  const pushHistory = (label) => setMoveHistory(p => [label, ...p].slice(0, 8));
+  const pushHistory = (label, key) => {
+    const pct = key ? Math.round(lvBonus(skills[key]?.lv ?? 1) * 100) : 0;
+    setMoveHistory(p => [{ label, pct }, ...p].slice(0, 8));
+  };
+  const pushOpponentHistory = (label) => setOpponentHistory(p => [{ label }, ...p].slice(0, 8));
 
   // ── 경험치 처리 ──
   const useSkill = (key) => {
@@ -124,6 +129,7 @@ export default function TableTennisChess() {
     setScore({ player: 0, opponent: 0 });
     setServer('PLAYER'); setTurn('PLAYER'); setBall(null); setPendingAttack(null);
     setMoveHistory([]);
+    setOpponentHistory([]);
     setGameState('PLAYING');
     setServeTab('SHORT');
     setLogs([{ text: '🏁 게임 시작! 스킬을 반복 사용해 레벨업하세요.', type: 'system' }]);
@@ -186,25 +192,25 @@ export default function TableTennisChess() {
       BH_DRIVE:      { base: 0.65, label: '🔵 BH 드라이브' },
       SMASH:         { base: ball?.spin === 'LOB_SPIN' ? 0.92 : ball?.spin === 'BLOCK_RETURN' ? 0.92 : 0.85, label: '💥 스매시' },
     };
-    if (ATTACK_DEFS[action]) { pushHistory(ATTACK_DEFS[action].label); queueAttack(action, ATTACK_DEFS[action].base, ATTACK_DEFS[action].label); return; }
+    if (ATTACK_DEFS[action]) { pushHistory(ATTACK_DEFS[action].label, action); queueAttack(action, ATTACK_DEFS[action].base, ATTACK_DEFS[action].label); return; }
 
     switch (action) {
-      case 'SERVE_SHORT_BACK':      useSkill(action); pushHistory('짧은 하회전'); addLog('나: [짧은 하회전] — 안전한 오프닝', 'player'); setBall({ row: 1, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
-      case 'SERVE_LONG_FAST':       useSkill(action); pushHistory('긴 빠른 상회전'); addLog('나: [긴 빠른 상회전] — 기습!', 'player'); setBall({ row: 0, col, spin: 'FAST_TOP' }); setTurn('OPPONENT'); break;
-      case 'SERVE_SHORT_TOP':       useSkill(action); pushHistory('짧은 상회전'); addLog('나: [짧은 상회전] — 커트 함정', 'player'); setBall({ row: 1, col, spin: 'TOPSPIN' }); setTurn('OPPONENT'); break;
-      case 'SERVE_SHORT_SIDE':      useSkill(action); pushHistory('짧은 횡회전'); addLog('나: [짧은 횡회전] — 방향 혼란', 'player'); setBall({ row: 1, col, spin: 'SIDESPIN' }); setTurn('OPPONENT'); break;
-      case 'SERVE_LONG_BACK':       useSkill(action); pushHistory('긴 하회전'); addLog('나: [긴 하회전] — 깊고 낮게', 'player'); setBall({ row: 0, col, spin: 'LONG_BACK' }); setTurn('OPPONENT'); break;
-      case 'SERVE_LONG_SIDE':       useSkill(action); pushHistory('긴 횡회전'); addLog('나: [긴 횡회전] — 깊은 사이드스핀', 'player'); setBall({ row: 0, col, spin: 'LONG_SIDE' }); setTurn('OPPONENT'); break;
-      case 'SERVE_SHORT_SIDE_BACK': useSkill(action); pushHistory('횡하회전'); addLog('나: [짧은 횡하회전] — 복합 회전', 'player'); setBall({ row: 1, col, spin: 'SIDESPIN_BACK' }); setTurn('OPPONENT'); break;
-      case 'SERVE_SHORT_SIDE_TOP':  useSkill(action); pushHistory('횡상회전'); addLog('나: [짧은 횡상회전] — 복합 속임수', 'player'); setBall({ row: 1, col, spin: 'SIDESPIN_TOP' }); setTurn('OPPONENT'); break;
-      case 'SERVE_KNUCKLE':         useSkill(action); pushHistory('너클'); addLog('나: [너클] — 무회전 불규칙!', 'player'); setBall({ row: 1, col, spin: 'KNUCKLE' }); setTurn('OPPONENT'); break;
-      case 'SERVE_DOUBLE_BOUNCE':   useSkill(action); pushHistory('더블 바운드'); addLog('나: [더블 바운드] — 두 번 튕김!', 'player'); setBall({ row: 1, col, spin: 'DOUBLE_BOUNCE' }); setTurn('OPPONENT'); break;
-      case 'STOP':        useSkill(action); pushHistory('스톱'); addLog('나: [스톱] 네트 앞에 놓습니다.', 'player'); setBall({ row: 1, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
-      case 'PUSH':        useSkill(action); pushHistory('보스커트'); addLog('나: [보스커트] 깊숙이 찌릅니다.', 'player'); setBall({ row: 0, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
-      case 'CUT':         useSkill(action); pushHistory('맞커트'); addLog('나: [맞커트] 길게 깎아 보냅니다.', 'player'); setBall({ row: 0, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
-      case 'SHORT_BLOCK': useSkill(action); pushHistory('쇼트'); addLog('나: [쇼트] 짧게 밀어냅니다.', 'player'); setBall({ row: 1, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
+      case 'SERVE_SHORT_BACK':      useSkill(action); pushHistory('짧은 하회전', action); addLog('나: [짧은 하회전] — 안전한 오프닝', 'player'); setBall({ row: 1, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
+      case 'SERVE_LONG_FAST':       useSkill(action); pushHistory('긴 빠른 상회전', action); addLog('나: [긴 빠른 상회전] — 기습!', 'player'); setBall({ row: 0, col, spin: 'FAST_TOP' }); setTurn('OPPONENT'); break;
+      case 'SERVE_SHORT_TOP':       useSkill(action); pushHistory('짧은 상회전', action); addLog('나: [짧은 상회전] — 커트 함정', 'player'); setBall({ row: 1, col, spin: 'TOPSPIN' }); setTurn('OPPONENT'); break;
+      case 'SERVE_SHORT_SIDE':      useSkill(action); pushHistory('짧은 횡회전', action); addLog('나: [짧은 횡회전] — 방향 혼란', 'player'); setBall({ row: 1, col, spin: 'SIDESPIN' }); setTurn('OPPONENT'); break;
+      case 'SERVE_LONG_BACK':       useSkill(action); pushHistory('긴 하회전', action); addLog('나: [긴 하회전] — 깊고 낮게', 'player'); setBall({ row: 0, col, spin: 'LONG_BACK' }); setTurn('OPPONENT'); break;
+      case 'SERVE_LONG_SIDE':       useSkill(action); pushHistory('긴 횡회전', action); addLog('나: [긴 횡회전] — 깊은 사이드스핀', 'player'); setBall({ row: 0, col, spin: 'LONG_SIDE' }); setTurn('OPPONENT'); break;
+      case 'SERVE_SHORT_SIDE_BACK': useSkill(action); pushHistory('횡하회전', action); addLog('나: [짧은 횡하회전] — 복합 회전', 'player'); setBall({ row: 1, col, spin: 'SIDESPIN_BACK' }); setTurn('OPPONENT'); break;
+      case 'SERVE_SHORT_SIDE_TOP':  useSkill(action); pushHistory('횡상회전', action); addLog('나: [짧은 횡상회전] — 복합 속임수', 'player'); setBall({ row: 1, col, spin: 'SIDESPIN_TOP' }); setTurn('OPPONENT'); break;
+      case 'SERVE_KNUCKLE':         useSkill(action); pushHistory('너클', action); addLog('나: [너클] — 무회전 불규칙!', 'player'); setBall({ row: 1, col, spin: 'KNUCKLE' }); setTurn('OPPONENT'); break;
+      case 'SERVE_DOUBLE_BOUNCE':   useSkill(action); pushHistory('더블 바운드', action); addLog('나: [더블 바운드] — 두 번 튕김!', 'player'); setBall({ row: 1, col, spin: 'DOUBLE_BOUNCE' }); setTurn('OPPONENT'); break;
+      case 'STOP':        useSkill(action); pushHistory('스톱', action); addLog('나: [스톱] 네트 앞에 놓습니다.', 'player'); setBall({ row: 1, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
+      case 'PUSH':        useSkill(action); pushHistory('보스커트', action); addLog('나: [보스커트] 깊숙이 찌릅니다.', 'player'); setBall({ row: 0, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
+      case 'CUT':         useSkill(action); pushHistory('맞커트', action); addLog('나: [맞커트] 길게 깎아 보냅니다.', 'player'); setBall({ row: 0, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
+      case 'SHORT_BLOCK': useSkill(action); pushHistory('쇼트', action); addLog('나: [쇼트] 짧게 밀어냅니다.', 'player'); setBall({ row: 1, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
       case 'LOB': {
-        useSkill(action); pushHistory('로빙');
+        useSkill(action); pushHistory('로빙', action);
         // 로빙은 의도적으로 상대에게 기회를 주는 수비 기술
         // 레벨이 높으면 높게 올려 스매시 각도를 줄이는 효과 (AI 스매시 성공률 하락)
         const lobLv = skills['LOB']?.lv ?? 1;
@@ -215,7 +221,7 @@ export default function TableTennisChess() {
         break;
       }
       case 'BLOCK': {
-        useSkill(action); pushHistory('블록');
+        useSkill(action); pushHistory('블록', action);
         const hard = ball?.spin === 'FAST_TOP' || ball?.spin === 'POWER_SPIN';
         const base = hard ? 0.35 : 0.62;
         const chance = applyBonus(base, 'BLOCK');
@@ -245,16 +251,16 @@ export default function TableTennisChess() {
     // 서브
     if (!ball) {
       const r = Math.random();
-      if      (r < 0.17) { addLog('상대: [짧은 하회전 서브]', 'opponent');            setBall({ row: 2, col, spin: 'BACKSPIN' }); }
-      else if (r < 0.28) { addLog('상대: 기습! [긴 빠른 상회전 서브]!', 'opponent');  setBall({ row: 3, col, spin: 'FAST_TOP' }); }
-      else if (r < 0.38) { addLog('상대: [짧은 상회전 서브] 속임수', 'opponent');     setBall({ row: 2, col, spin: 'TOPSPIN' }); }
-      else if (r < 0.46) { addLog('상대: [짧은 횡회전 서브]!', 'opponent');            setBall({ row: 2, col, spin: 'SIDESPIN' }); }
-      else if (r < 0.54) { addLog('상대: [긴 하회전 서브] 낮고 깊게!', 'opponent');   setBall({ row: 3, col, spin: 'LONG_BACK' }); }
-      else if (r < 0.61) { addLog('상대: [긴 횡회전 서브]!', 'opponent');              setBall({ row: 3, col, spin: 'LONG_SIDE' }); }
-      else if (r < 0.69) { addLog('상대: [짧은 횡하회전 서브]!', 'opponent');          setBall({ row: 2, col, spin: 'SIDESPIN_BACK' }); }
-      else if (r < 0.76) { addLog('상대: [짧은 횡상회전 서브]!', 'opponent');          setBall({ row: 2, col, spin: 'SIDESPIN_TOP' }); }
-      else if (r < 0.83) { addLog('상대: ⚪ [너클 서브]!', 'opponent');               setBall({ row: 2, col, spin: 'KNUCKLE' }); }
-      else               { addLog('상대: 🏀 [더블 바운드 서브]!', 'opponent');         setBall({ row: 2, col, spin: 'DOUBLE_BOUNCE' }); }
+      if      (r < 0.17) { pushOpponentHistory('짧은 하회전'); addLog('상대: [짧은 하회전 서브]', 'opponent');            setBall({ row: 2, col, spin: 'BACKSPIN' }); }
+      else if (r < 0.28) { pushOpponentHistory('긴 빠른 상회전'); addLog('상대: 기습! [긴 빠른 상회전 서브]!', 'opponent');  setBall({ row: 3, col, spin: 'FAST_TOP' }); }
+      else if (r < 0.38) { pushOpponentHistory('짧은 상회전'); addLog('상대: [짧은 상회전 서브] 속임수', 'opponent');     setBall({ row: 2, col, spin: 'TOPSPIN' }); }
+      else if (r < 0.46) { pushOpponentHistory('짧은 횡회전'); addLog('상대: [짧은 횡회전 서브]!', 'opponent');            setBall({ row: 2, col, spin: 'SIDESPIN' }); }
+      else if (r < 0.54) { pushOpponentHistory('긴 하회전'); addLog('상대: [긴 하회전 서브] 낮고 깊게!', 'opponent');   setBall({ row: 3, col, spin: 'LONG_BACK' }); }
+      else if (r < 0.61) { pushOpponentHistory('긴 횡회전'); addLog('상대: [긴 횡회전 서브]!', 'opponent');              setBall({ row: 3, col, spin: 'LONG_SIDE' }); }
+      else if (r < 0.69) { pushOpponentHistory('횡하회전'); addLog('상대: [짧은 횡하회전 서브]!', 'opponent');          setBall({ row: 2, col, spin: 'SIDESPIN_BACK' }); }
+      else if (r < 0.76) { pushOpponentHistory('횡상회전'); addLog('상대: [짧은 횡상회전 서브]!', 'opponent');          setBall({ row: 2, col, spin: 'SIDESPIN_TOP' }); }
+      else if (r < 0.83) { pushOpponentHistory('너클'); addLog('상대: ⚪ [너클 서브]!', 'opponent');               setBall({ row: 2, col, spin: 'KNUCKLE' }); }
+      else               { pushOpponentHistory('더블 바운드'); addLog('상대: 🏀 [더블 바운드 서브]!', 'opponent');         setBall({ row: 2, col, spin: 'DOUBLE_BOUNCE' }); }
       setTurn('PLAYER'); return;
     }
 
@@ -269,6 +275,7 @@ export default function TableTennisChess() {
       const smashChance = Math.max(0.50, 0.90 - penalty);
       addLog(`상대: 로빙! 💥 스매시! (성공률 ${Math.round(smashChance*100)}%)`, 'opponent');
       if (Math.random() < smashChance) {
+        pushOpponentHistory('스매시');
         setBall({ row: 3, col: aiToCol, spin: 'POWER_SPIN', fromRow: row, fromCol: aiFromCol });
         setTurn('PLAYER');
       } else { addLog('상대: 스매시 미스!', 'system'); winPoint('player'); }
@@ -279,7 +286,7 @@ export default function TableTennisChess() {
     if (spin === 'BLOCK_RETURN') {
       addLog('상대: 뜬 공! 🔥 드라이브!', 'opponent');
       const chance = calcChance(0.88, aiFromCol, row, aiToCol);
-      if (Math.random() < chance) { setBall({ row: 3, col: aiToCol, spin: 'TOPSPIN', fromRow: row, fromCol: aiFromCol }); setTurn('PLAYER'); }
+      if (Math.random() < chance) { pushOpponentHistory('드라이브'); setBall({ row: 3, col: aiToCol, spin: 'TOPSPIN', fromRow: row, fromCol: aiFromCol }); setTurn('PLAYER'); }
       else { addLog('상대: 아웃!', 'system'); winPoint('player'); }
       return;
     }
@@ -298,11 +305,11 @@ export default function TableTennisChess() {
         addLog('상대: 루프 회전!', 'opponent');
         if (Math.random() < 0.5) {
           addLog('상대: [블록] — 회전에 밀려 뜹니다.', 'opponent');
-          if (Math.random() < 0.50) { setBall({ row: Math.random() > 0.5 ? 2 : 3, col: aiToCol, spin: 'BLOCK_RETURN', fromRow: row, fromCol: aiFromCol }); setTurn('PLAYER'); }
+          if (Math.random() < 0.50) { pushOpponentHistory('블록'); setBall({ row: Math.random() > 0.5 ? 2 : 3, col: aiToCol, spin: 'BLOCK_RETURN', fromRow: row, fromCol: aiFromCol }); setTurn('PLAYER'); }
           else { addLog('상대: 블록 미스!', 'system'); winPoint('player'); }
         } else {
           addLog(`상대: 🌀 [카운터] ${dirLabel}!`, 'opponent');
-          if (Math.random() < calcChance(0.48, aiFromCol, row, aiToCol)) { setBall({ row: 3, col: aiToCol, spin: 'TOPSPIN', fromRow: row, fromCol: aiFromCol }); setTurn('PLAYER'); }
+          if (Math.random() < calcChance(0.48, aiFromCol, row, aiToCol)) { pushOpponentHistory('카운터'); setBall({ row: 3, col: aiToCol, spin: 'TOPSPIN', fromRow: row, fromCol: aiFromCol }); setTurn('PLAYER'); }
           else { addLog('상대: 카운터 미스!', 'system'); winPoint('player'); }
         }
         return;
@@ -312,15 +319,15 @@ export default function TableTennisChess() {
       if (r2 < 0.30) {
         addLog('상대: 🛡️ [블록]', 'opponent');
         if (Math.random() < (spin === 'FAST_TOP' ? 0.35 : 0.62)) {
-          setBall({ row: Math.random() > 0.5 ? 2 : 3, col: aiToCol, spin: 'BLOCK_RETURN', fromRow: row, fromCol: aiFromCol }); setTurn('PLAYER');
+          pushOpponentHistory('블록'); setBall({ row: Math.random() > 0.5 ? 2 : 3, col: aiToCol, spin: 'BLOCK_RETURN', fromRow: row, fromCol: aiFromCol }); setTurn('PLAYER');
         } else { addLog('상대: 블록 미스!', 'system'); winPoint('player'); }
       } else if (r2 < 0.65) {
         addLog(`상대: 🌀 [카운터] ${dirLabel}!`, 'opponent');
-        if (Math.random() < calcChance(0.55, aiFromCol, row, aiToCol)) { setBall({ row: 3, col: aiToCol, spin: 'TOPSPIN', fromRow: row, fromCol: aiFromCol }); setTurn('PLAYER'); }
+        if (Math.random() < calcChance(0.55, aiFromCol, row, aiToCol)) { pushOpponentHistory('카운터'); setBall({ row: 3, col: aiToCol, spin: 'TOPSPIN', fromRow: row, fromCol: aiFromCol }); setTurn('PLAYER'); }
         else { addLog('상대: 카운터 미스!', 'system'); winPoint('player'); }
       } else {
         addLog('상대: 🪂 [로빙] — 높게 올립니다!', 'opponent');
-        setBall({ row: 3, col: aiToCol, spin: 'LOB_SPIN', lobPenalty: 0, fromRow: row, fromCol: aiFromCol }); setTurn('PLAYER');
+        pushOpponentHistory('로빙'); setBall({ row: 3, col: aiToCol, spin: 'LOB_SPIN', lobPenalty: 0, fromRow: row, fromCol: aiFromCol }); setTurn('PLAYER');
       }
       return;
     }
@@ -329,16 +336,16 @@ export default function TableTennisChess() {
     if (row === 1) {
       if (spin === 'BACKSPIN' || spin === 'SIDESPIN' || spin === 'SIDESPIN_BACK') {
         const r = Math.random();
-        if      (r < 0.22) { addLog('상대: [스톱]', 'opponent');     setBall({ row: 2, col: aiToCol, spin: 'BACKSPIN' }); }
-        else if (r < 0.44) { addLog('상대: [보스커트]', 'opponent'); setBall({ row: 3, col: aiToCol, spin: 'BACKSPIN' }); }
-        else if (r < 0.58) { addLog('상대: [쇼트]', 'opponent');     setBall({ row: 2, col: aiToCol, spin: 'BACKSPIN' }); }
+        if      (r < 0.22) { pushOpponentHistory('스톱'); addLog('상대: [스톱]', 'opponent');     setBall({ row: 2, col: aiToCol, spin: 'BACKSPIN' }); }
+        else if (r < 0.44) { pushOpponentHistory('보스커트'); addLog('상대: [보스커트]', 'opponent'); setBall({ row: 3, col: aiToCol, spin: 'BACKSPIN' }); }
+        else if (r < 0.58) { pushOpponentHistory('쇼트'); addLog('상대: [쇼트]', 'opponent');     setBall({ row: 2, col: aiToCol, spin: 'BACKSPIN' }); }
         else if (r < 0.78) {
           addLog(`상대: ⚡ [플릭] ${dirLabel}!`, 'opponent');
-          if (Math.random() < calcChance(0.60, aiFromCol, row, aiToCol)) { setBall({ row: 3, col: aiToCol, spin: 'TOPSPIN', fromRow: row, fromCol: aiFromCol }); }
+          if (Math.random() < calcChance(0.60, aiFromCol, row, aiToCol)) { pushOpponentHistory('플릭'); setBall({ row: 3, col: aiToCol, spin: 'TOPSPIN', fromRow: row, fromCol: aiFromCol }); }
           else { addLog('상대: 플릭 미스!', 'system'); winPoint('player'); return; }
         } else {
           addLog(`상대: 🎯 [치키타] ${dirLabel}!`, 'opponent');
-          if (Math.random() < calcChance(0.55, aiFromCol, row, aiToCol)) { setBall({ row: 3, col: aiToCol, spin: 'TOPSPIN', fromRow: row, fromCol: aiFromCol }); }
+          if (Math.random() < calcChance(0.55, aiFromCol, row, aiToCol)) { pushOpponentHistory('치키타'); setBall({ row: 3, col: aiToCol, spin: 'TOPSPIN', fromRow: row, fromCol: aiFromCol }); }
           else { addLog('상대: 치키타 미스!', 'system'); winPoint('player'); return; }
         }
       } else if (spin === 'TOPSPIN' || spin === 'SIDESPIN_TOP') {
@@ -369,15 +376,15 @@ export default function TableTennisChess() {
       }
       if (spin === 'LONG_BACK' || spin === 'BACKSPIN') {
         const r = Math.random();
-        if (r < 0.28) { addLog('상대: [맞커트]', 'opponent'); setBall({ row: 3, col: aiToCol, spin: 'BACKSPIN' }); setTurn('PLAYER'); }
+        if (r < 0.28) { pushOpponentHistory('맞커트'); addLog('상대: [맞커트]', 'opponent'); setBall({ row: 3, col: aiToCol, spin: 'BACKSPIN' }); setTurn('PLAYER'); }
         else if (r < 0.50) { addLog(`상대: 🔥 [드라이브] ${dirLabel}!`, 'opponent');
-          if (Math.random() < calcChance(0.70, aiFromCol, row, aiToCol)) { setBall({ row: 3, col: aiToCol, spin: 'TOPSPIN', fromRow: row, fromCol: aiFromCol }); setTurn('PLAYER'); }
+          if (Math.random() < calcChance(0.70, aiFromCol, row, aiToCol)) { pushOpponentHistory('드라이브'); setBall({ row: 3, col: aiToCol, spin: 'TOPSPIN', fromRow: row, fromCol: aiFromCol }); setTurn('PLAYER'); }
           else { addLog('상대: 드라이브 네트!', 'system'); winPoint('player'); }
         } else if (r < 0.75) { addLog(`상대: 🌀 [루프] ${dirLabel}!`, 'opponent');
-          if (Math.random() < calcChance(0.65, aiFromCol, row, aiToCol)) { setBall({ row: 3, col: aiToCol, spin: 'LOOP_SPIN', fromRow: row, fromCol: aiFromCol }); setTurn('PLAYER'); }
+          if (Math.random() < calcChance(0.65, aiFromCol, row, aiToCol)) { pushOpponentHistory('루프'); setBall({ row: 3, col: aiToCol, spin: 'LOOP_SPIN', fromRow: row, fromCol: aiFromCol }); setTurn('PLAYER'); }
           else { addLog('상대: 루프 네트!', 'system'); winPoint('player'); }
         } else { addLog(`상대: 💥 [파워드라이브] ${dirLabel}!`, 'opponent');
-          if (Math.random() < calcChance(0.60, aiFromCol, row, aiToCol)) { setBall({ row: 3, col: aiToCol, spin: 'POWER_SPIN', fromRow: row, fromCol: aiFromCol }); setTurn('PLAYER'); }
+          if (Math.random() < calcChance(0.60, aiFromCol, row, aiToCol)) { pushOpponentHistory('파워드라이브'); setBall({ row: 3, col: aiToCol, spin: 'POWER_SPIN', fromRow: row, fromCol: aiFromCol }); setTurn('PLAYER'); }
           else { addLog('상대: 파워드라이브 아웃!', 'system'); winPoint('player'); }
         }
         return;
@@ -530,13 +537,18 @@ export default function TableTennisChess() {
         </div>
         {/* 서브 버튼 그리드 */}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'7px' }}>
-          {list.map(({ label, action, color, sub }) => (
-            <button key={action} onClick={() => handlePlayerAction(action)} className="gbtn"
-              style={{ ...btnBase, padding:'11px 8px', background:color, color:'#fff', fontSize:'13px' }}>
-              {label}<br />
-              <span style={{ fontWeight:400, opacity:0.75, fontSize:'10px' }}>{sub}</span>
-            </button>
-          ))}
+          {list.map(({ label, action, color, sub }) => {
+            const lv = skills[action]?.lv ?? 1;
+            const pct = Math.round(lvBonus(lv) * 100);
+            return (
+              <button key={action} onClick={() => handlePlayerAction(action)} className="gbtn"
+                style={{ ...btnBase, padding:'11px 8px', background:color, color:'#fff', fontSize:'13px' }}>
+                {label}<br />
+                <span style={{ fontWeight:400, opacity:0.75, fontSize:'10px' }}>{sub}</span>
+                {pct > 0 && <><br /><span style={{ fontWeight:700, fontSize:'10px', color:'#6ee7b7' }}>+{pct}%</span></>}
+              </button>
+            );
+          })}
         </div>
       </div>
     );
@@ -634,29 +646,31 @@ export default function TableTennisChess() {
         <div style={{ width:'100%',maxWidth:'480px',display:'flex',flexDirection:'column',gap:'6px' }}>
           {/* 탁구대 + 양옆 점수 */}
           <div style={{ display:'flex',alignItems:'stretch',gap:'6px' }}>
-            {/* 상대 점수 (왼쪽) — 히스토리 위, 점수 아래 */}
-            <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',gap:'4px',paddingBottom:'4px' }}>
-              <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',gap:'2px',width:'100%',overflow:'hidden' }}>
-                {moveHistory.map((h,i) => (
-                  <span key={i} style={{ fontSize:'8px',color:i===0?'#93c5fd':'rgba(148,163,184,0.5)',fontWeight:i===0?700:400,textAlign:'center',lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:'100%' }}>{h}</span>
-                ))}
-              </div>
-              <span style={{ fontSize:'11px',color:'#94a3b8',marginTop:'4px' }}>상대</span>
+            {/* 상대 점수 (왼쪽) — 점수 위, 히스토리 아래 */}
+            <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-start',gap:'4px',paddingTop:'4px',overflow:'hidden' }}>
+              <span style={{ fontSize:'11px',color:'#94a3b8' }}>상대</span>
               <span style={{ fontSize:'32px',fontWeight:900,color:'#f87171',lineHeight:1 }}>{score.opponent}</span>
               {server==='OPPONENT' && <span style={{ fontSize:'16px' }}>🏓</span>}
+              <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',width:'100%',overflow:'hidden',marginTop:'2px' }}>
+                {opponentHistory.map((h,i) => (
+                  <span key={i} style={{ fontSize:'8px',color:i===0?'#fca5a5':'rgba(148,163,184,0.45)',fontWeight:i===0?700:400,textAlign:'center',lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:'100%' }}>{h.label}</span>
+                ))}
+              </div>
             </div>
             {/* 탁구대 */}
             <div style={{ flex:'0 0 56%' }}>{renderTableWithPath()}</div>
-            {/* 내 점수 (오른쪽) — 점수 위, 히스토리 아래 */}
-            <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-start',gap:'4px',paddingTop:'4px' }}>
+            {/* 내 점수 (오른쪽) — 히스토리 위, 점수 아래 */}
+            <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',gap:'4px',paddingBottom:'4px',overflow:'hidden' }}>
+              <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',gap:'2px',width:'100%',overflow:'hidden',marginBottom:'2px' }}>
+                {moveHistory.map((h,i) => (
+                  <span key={i} style={{ fontSize:'8px',color:i===0?'#93c5fd':'rgba(148,163,184,0.45)',fontWeight:i===0?700:400,textAlign:'center',lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:'100%' }}>
+                    {h.label}{h.pct>0?` +${h.pct}%`:''}
+                  </span>
+                ))}
+              </div>
               <span style={{ fontSize:'11px',color:'#94a3b8' }}>나</span>
               <span style={{ fontSize:'32px',fontWeight:900,color:'#60a5fa',lineHeight:1 }}>{score.player}</span>
               {server==='PLAYER' && <span style={{ fontSize:'16px' }}>🏓</span>}
-              <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',width:'100%',overflow:'hidden',marginTop:'4px' }}>
-                {moveHistory.map((h,i) => (
-                  <span key={i} style={{ fontSize:'8px',color:i===0?'#93c5fd':'rgba(148,163,184,0.5)',fontWeight:i===0?700:400,textAlign:'center',lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:'100%' }}>{h}</span>
-                ))}
-              </div>
             </div>
           </div>
 
@@ -683,13 +697,18 @@ export default function TableTennisChess() {
               : !ball ? renderServePanel()
               : buttons && buttons.length > 0 ? (
               <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',width:'100%' }}>
-                {buttons.map(({ label, action, color, sub, full }) => (
+                {buttons.map(({ label, action, color, sub, full }) => {
+                  const lv = skills[action]?.lv ?? 1;
+                  const bonus = Math.round(lvBonus(lv) * 100);
+                  return (
                   <button key={action} onClick={() => handlePlayerAction(action)} className="gbtn"
                     style={{ ...btnBase, gridColumn:full?'1/-1':undefined, padding:action==='SMASH'?'16px':'11px 8px', background:color, color:action==='SMASH'?'#000':'#fff', fontSize:'13px', border:action==='BLOCK'?'2px solid #0ea5e9':action==='COUNTER_DRIVE'?'2px solid #7c3aed':'none', boxShadow:action==='SMASH'?'0 0 20px rgba(234,179,8,0.4)':'none' }}>
                     {label}
                     {sub && <><br /><span style={{ fontWeight:400,opacity:0.75,fontSize:'10px' }}>{sub}</span></>}
+                    {bonus > 0 && <><br /><span style={{ fontWeight:700,fontSize:'10px',color:'#6ee7b7' }}>+{bonus}%</span></>}
                   </button>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div style={{ color:'#475569',fontSize:'12px' }}>...</div>
