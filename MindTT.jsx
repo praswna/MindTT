@@ -40,24 +40,25 @@ const initSkillData = () => {
 };
 
 // ── 스핀 RPM 정의 ──
+// 프로 기준에서 40% 낮춘 값
 const SPIN_RPM = {
-  BACKSPIN:      -6500,
-  TOPSPIN:        5000,
-  LOOP_SPIN:      8500,
-  POWER_SPIN:    11000,
-  SIDESPIN:       5500,
-  SIDESPIN_BACK: -5000,
-  SIDESPIN_TOP:   4500,
-  FAST_TOP:       7500,
-  LONG_BACK:     -7000,
-  LONG_SIDE:      5800,
-  DOUBLE_BOUNCE: -3500,
+  BACKSPIN:      -2700,  // 프로 ~4,500 × 0.6
+  TOPSPIN:        2300,  // 프로 ~3,800 × 0.6
+  LOOP_SPIN:      3600,  // 프로 ~6,000 × 0.6
+  POWER_SPIN:     4800,  // 프로 ~8,000 × 0.6
+  SIDESPIN:       2100,  // 프로 ~3,500 × 0.6
+  SIDESPIN_BACK: -2400,  // 프로 ~4,000 × 0.6
+  SIDESPIN_TOP:   2100,  // 프로 ~3,500 × 0.6
+  FAST_TOP:       3000,  // 프로 ~5,000 × 0.6
+  LONG_BACK:     -3000,  // 프로 ~5,000 × 0.6
+  LONG_SIDE:      2400,  // 프로 ~4,000 × 0.6
+  DOUBLE_BOUNCE: -1500,  // 프로 ~2,500 × 0.6
   KNUCKLE:           0,
-  LOB_SPIN:       3000,
-  FLOAT:          1000,
-  BLOCK_RETURN:   2500,
+  LOB_SPIN:       1500,  // 프로 ~2,500 × 0.6
+  FLOAT:           600,  // 프로 ~1,000 × 0.6
+  BLOCK_RETURN:   1200,  // 프로 ~2,000 × 0.6
 };
-const MAX_RPM = 12000;
+const MAX_RPM = 5500;   // 프로 최대 ~9,000 × 0.6
 
 // RPM이 각 기술 성공률에 미치는 영향
 const getRpmModifier = (action, spin) => {
