@@ -256,6 +256,11 @@ export default function TableTennisChess() {
     addLog(`나: ${label} → ${dirLabel}`, 'player');
     useSkill(action);
     if (Math.random() < chance) {
+      if (action === 'SMASH') {
+        addLog('💥 스매시 득점!', 'player');
+        winPoint('player');
+        return;
+      }
       addLog('🎲 성공!', 'player');
       const outSpin = action === 'LOOP' ? 'LOOP_SPIN' : action === 'POWER_DRIVE' ? 'POWER_SPIN' : 'TOPSPIN';
       setBall({ row: 0, col: toCol, spin: outSpin, fromRow, fromCol });
