@@ -257,8 +257,15 @@ export default function TableTennisChess() {
     useSkill(action);
     if (Math.random() < chance) {
       if (action === 'SMASH') {
-        addLog('💥 스매시 득점!', 'player');
-        winPoint('player');
+        const blockChance = 0.28; // 상대가 블록으로 받아낼 확률
+        if (Math.random() < blockChance) {
+          addLog('💥 스매시 → 상대 블록! 뜬 공!', 'opponent');
+          setBall({ row: 3, col: toCol, spin: 'BLOCK_RETURN', fromRow, fromCol });
+          setTurn('PLAYER');
+        } else {
+          addLog('💥 스매시 득점!', 'player');
+          winPoint('player');
+        }
         return;
       }
       addLog('🎲 성공!', 'player');
