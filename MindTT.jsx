@@ -317,7 +317,18 @@ export default function TableTennisChess() {
       case 'SERVE_SHORT_SIDE_TOP':  useSkill(action); pushHistory('횡상회전', action); addLog('나: [짧은 횡상회전] — 복합 속임수', 'player'); setBall({ row: 1, col, spin: 'SIDESPIN_TOP' }); setTurn('OPPONENT'); break;
       case 'SERVE_KNUCKLE':         useSkill(action); pushHistory('너클', action); addLog('나: [너클] — 무회전 불규칙!', 'player'); setBall({ row: 1, col, spin: 'KNUCKLE' }); setTurn('OPPONENT'); break;
       case 'SERVE_DOUBLE_BOUNCE':   useSkill(action); pushHistory('더블 바운드', action); addLog('나: [더블 바운드] — 두 번 튕김!', 'player'); setBall({ row: 1, col, spin: 'DOUBLE_BOUNCE' }); setTurn('OPPONENT'); break;
-      case 'STOP':        useSkill(action); pushHistory('스톱', action); addLog('나: [스톱] 네트 앞에 놓습니다.', 'player'); setBall({ row: 1, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
+      case 'STOP': {
+        useSkill(action); pushHistory('스톱', action);
+        const stopP = applyBonus(ball?.row >= 3 ? 0.35 : 0.75, 'STOP');
+        if (Math.random() < stopP) {
+          addLog(`나: [스톱] 네트 앞에 놓습니다.${ball?.row >= 3 ? ' (롱→스톱 성공!)' : ''}`, 'player');
+          setBall({ row: 1, col, spin: 'BACKSPIN' });
+        } else {
+          addLog('나: [스톱 실패] 네트에 걸렸습니다!', 'player');
+          opponentScores(); return;
+        }
+        setTurn('OPPONENT'); break;
+      }
       case 'PUSH': {
         useSkill(action); pushHistory('보스커트', action);
         const isSide = ball?.spin === 'SIDESPIN' || ball?.spin === 'SIDESPIN_BACK';
@@ -342,7 +353,18 @@ export default function TableTennisChess() {
         }
         break;
       }
-      case 'SHORT_BLOCK': useSkill(action); pushHistory('쇼트', action); addLog('나: [쇼트] 짧게 밀어냅니다.', 'player'); setBall({ row: 1, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
+      case 'SHORT_BLOCK': {
+        useSkill(action); pushHistory('쇼트', action);
+        const shortP = applyBonus(ball?.row >= 3 ? 0.45 : 0.82, 'SHORT_BLOCK');
+        if (Math.random() < shortP) {
+          addLog(`나: [쇼트] 짧게 밀어냅니다.${ball?.row >= 3 ? ' (롱→쇼트 성공!)' : ''}`, 'player');
+          setBall({ row: 1, col, spin: 'BACKSPIN' });
+        } else {
+          addLog('나: [쇼트 실패] 네트에 걸렸습니다!', 'player');
+          opponentScores(); return;
+        }
+        setTurn('OPPONENT'); break;
+      }
       case 'LOB': {
         useSkill(action); pushHistory('로빙', action);
         // 로빙은 의도적으로 상대에게 기회를 주는 수비 기술
@@ -796,7 +818,7 @@ export default function TableTennisChess() {
     if (row===2 && (spin==='BLOCK_RETURN'||spin==='FLOAT')) return [mk('💥 스매시 찬스!','SMASH','#854d0e',null,true)];
 
     // 긴공 리시브
-    const longBackBtns = [mk('맞커트','CUT','#334155','안전 수비'), mk('🔥 드라이브','DRIVE','#9a3412','방향 선택'), mk('🌀 루프','LOOP','#b45309','강한 회전'), mk('💥 파워드라이브','POWER_DRIVE','#7f1d1d','강타'), mk('🔵 BH드라이브','BH_DRIVE','#1e40af','백핸드')];
+    const longBackBtns = [mk('맞커트','CUT','#334155','안전 수비'), mk('🔥 드라이브','DRIVE','#9a3412','방향 선택'), mk('🌀 루프','LOOP','#b45309','강한 회전'), mk('💥 파워드라이브','POWER_DRIVE','#7f1d1d','강타'), mk('🔵 BH드라이브','BH_DRIVE','#1e40af','백핸드'), mk('쇼트 ⚠','SHORT_BLOCK','#1e3a5f','짧게 되돌리기'), mk('스톱 ⚠','STOP','#1e293b','어려움')];
     if (row===3 && (spin==='BACKSPIN'||spin==='LONG_BACK'||spin==='SIDESPIN_BACK')) return longBackBtns;
     if (row===3 && (spin==='SIDESPIN'||spin==='LONG_SIDE')) return [mk('맞커트','CUT','#334155','방향 주의'), mk('🔥 드라이브','DRIVE','#9a3412','방향 선택'), mk('🌀 루프','LOOP','#b45309','강한 회전')];
     if (row===3 && spin==='KNUCKLE') return [mk('맞커트','CUT','#334155','⚠불규칙'), mk('🔥 드라이브','DRIVE','#9a3412','⚠어려움')];
