@@ -642,7 +642,7 @@ export default function TableTennisChess() {
           {/* 메인 직선 */}
           <line x1={fx} y1={fy} x2={tx} y2={ty}
             stroke={`url(#${gId})`} strokeWidth="2.5" strokeLinecap="round"
-            strokeDasharray="8 4" markerEnd={`url(#${mId})`}/>
+            markerEnd={`url(#${mId})`}/>
           {/* 방향 라벨 */}
           <text x={labelX} y={labelY} fill={sc2} fontSize="9" fontWeight="bold" textAnchor="middle"
             style={{ filter:'drop-shadow(0 1px 3px rgba(0,0,0,1))' }}>
