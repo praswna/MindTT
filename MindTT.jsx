@@ -105,6 +105,33 @@ const getRpmModifier = (action, spin) => {
   return modifiers[action] ?? 0;
 };
 
+// 속도가 각 기술 성공률에 미치는 영향 (빠를수록 어려움)
+const getSpeedModifier = (action, spin) => {
+  const speed = BALL_SPEED[spin] ?? 40;
+  // 기준속도 45 km/h 기준. 초과할수록 페널티, 미만이면 소폭 보너스
+  const delta = (speed - 45) / 100; // 예: 90km → +0.45, 22km → -0.23
+  const modifiers = {
+    // 수비기술: 빠른 공에 크게 불리
+    BLOCK:       -delta * 0.55,
+    SHORT_BLOCK: -delta * 0.40,
+    STOP:        -delta * 0.35,
+    CUT:         -delta * 0.30,
+    PUSH:        -delta * 0.25,
+    LOB:         -delta * 0.20,
+    // 공격기술: 적당히 불리 (빠른 공은 타이밍 맞추기 어려움)
+    COUNTER_DRIVE: -delta * 0.45,
+    DRIVE:         -delta * 0.20,
+    LOOP:          -delta * 0.15,
+    FLICK:         -delta * 0.25,
+    CHIQUITA:      -delta * 0.30,
+    BH_DRIVE:      -delta * 0.20,
+    POWER_DRIVE:   -delta * 0.18,
+    // 스매시: 로빙(느림)은 쉽고, 빠른 공은 거의 불가
+    SMASH:         -delta * 0.60,
+  };
+  return modifiers[action] ?? 0;
+};
+
 // 서브 카테고리 정의
 const SERVES_SHORT = [
   { label:'짧은 하회전',   action:'SERVE_SHORT_BACK',      color:'#1e40af', sub:'안전/정석' },
@@ -172,9 +199,10 @@ export default function TableTennisChess() {
   };
 
   const applyBonus = (base, key) => {
-    const lv = lvBonus(skills[key]?.lv ?? 1);
-    const rpm = getRpmModifier(key, ball?.spin);
-    return Math.min(0.97, Math.max(0.05, base + lv + rpm));
+    const lv    = lvBonus(skills[key]?.lv ?? 1);
+    const rpm   = getRpmModifier(key, ball?.spin);
+    const spd   = getSpeedModifier(key, ball?.spin);
+    return Math.min(0.97, Math.max(0.05, base + lv + rpm + spd));
   };
 
   const checkServerChange = (total) => {
@@ -941,15 +969,18 @@ export default function TableTennisChess() {
               <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',width:'100%' }}>
                 {buttons.map(({ label, action, color, sub, full }) => {
                   const lv = skills[action]?.lv ?? 1;
-                  const lvPct = Math.round(lvBonus(lv) * 100);
+                  const lvPct  = Math.round(lvBonus(lv) * 100);
+                  const spdMod = getSpeedModifier(action, ball?.spin);
+                  const spdPct = Math.round(spdMod * 100);
                   return (
                   <button key={action} onClick={() => handlePlayerAction(action)} className="gbtn"
                     style={{ ...btnBase, gridColumn:full?'1/-1':undefined, padding:action==='SMASH'?'16px':'11px 8px', background:color, color:action==='SMASH'?'#000':'#fff', fontSize:'13px', border:action==='BLOCK'?'2px solid #0ea5e9':action==='COUNTER_DRIVE'?'2px solid #7c3aed':'none', boxShadow:action==='SMASH'?'0 0 20px rgba(234,179,8,0.4)':'none' }}>
                     {label}
                     {sub && <><br /><span style={{ fontWeight:400,opacity:0.75,fontSize:'10px' }}>{sub}</span></>}
-                    {lvPct > 0 && (
+                    {(lvPct > 0 || spdPct !== 0) && (
                       <><br /><span style={{ fontWeight:700,fontSize:'10px' }}>
-                        <span style={{ color:'#6ee7b7' }}>+{lvPct}%</span>
+                        {lvPct > 0 && <span style={{ color:'#6ee7b7' }}>+{lvPct}%</span>}
+                        {spdPct !== 0 && <span style={{ color: spdPct > 0 ? '#34d399' : '#f87171', marginLeft: lvPct > 0 ? '3px' : 0 }}>{spdPct > 0 ? `+${spdPct}` : spdPct}%</span>}
                       </span></>
                     )}
                   </button>
