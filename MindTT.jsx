@@ -439,16 +439,16 @@ export default function TableTennisChess() {
       );
     })() : null;
     return (
-      <div style={{ background:'#166534',borderRadius:'10px',border:'5px solid #292524',boxShadow:'0 8px 32px rgba(0,0,0,0.6)',overflow:'hidden',position:'relative' }}>
+      <div style={{ background:'#166534',borderRadius:'10px',border:'5px solid #292524',boxShadow:'0 8px 32px rgba(0,0,0,0.6)',overflow:'hidden',position:'relative',aspectRatio:'152.5/274',width:'55%',margin:'0 auto' }}>
         <div style={{ position:'absolute',left:'50%',top:0,bottom:0,width:'1px',background:'rgba(255,255,255,0.28)',transform:'translateX(-50%)',pointerEvents:'none',zIndex:2 }} />
         {pathEl}
-        <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gridTemplateRows:`repeat(4,${cellH}px)`,position:'relative',zIndex:3 }}>
+        <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gridTemplateRows:'repeat(4,1fr)',position:'relative',zIndex:3,height:'100%' }}>
           {[0,1,2,3].flatMap(r => [0,1].map(c => {
             const here = ball?.row === r && ball?.col === c;
             const isFrom = ball?.fromRow === r && ball?.fromCol === c;
             const meta = here ? (spinMeta[ball.spin] || spinMeta.BACKSPIN) : null;
             return (
-              <div key={`${r}-${c}`} style={{ position:'relative',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:`${cellH}px`,borderRight:c===0?'1px solid rgba(255,255,255,0.2)':'none',borderBottom:r<3?'1px solid rgba(255,255,255,0.12)':'none',borderTop:r===2?'3px solid rgba(255,255,255,0.85)':'none',background:here?'rgba(255,255,255,0.08)':isFrom?'rgba(255,255,255,0.03)':'transparent',minHeight:0 }}>
+              <div key={`${r}-${c}`} style={{ position:'relative',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',borderRight:c===0?'1px solid rgba(255,255,255,0.2)':'none',borderBottom:r<3?'1px solid rgba(255,255,255,0.12)':'none',borderTop:r===2?'3px solid rgba(255,255,255,0.85)':'none',background:here?'rgba(255,255,255,0.08)':isFrom?'rgba(255,255,255,0.03)':'transparent' }}>
                 {!here && <span style={{ fontSize:'9px',color:'rgba(255,255,255,0.12)',fontWeight:700,userSelect:'none' }}>{r<=1?'상대':'내'}{r%2===0?' 긴':' 짧'}</span>}
                 {here && meta && (
                   <div style={{ display:'flex',flexDirection:'column',alignItems:'center',gap:'4px' }}>
