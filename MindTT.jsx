@@ -801,6 +801,26 @@ export default function TableTennisChess() {
     );
   };
 
+  // ── 기술 성공률 계산 ──
+  const getSuccessRate = (action) => {
+    const ATTACK_DEFS_BASE = {
+      DRIVE: ball?.spin === 'BLOCK_RETURN' ? 0.85 : 0.70,
+      COUNTER_DRIVE: 0.55, FLICK: 0.60, CHIQUITA: 0.35,
+      LOOP: 0.65, POWER_DRIVE: 0.60, SMASH: ball?.spin === 'LOB_SPIN' || ball?.spin === 'BLOCK_RETURN' ? 0.92 : 0.85,
+    };
+    const MISC_BASE = {
+      STOP:        ball?.row >= 3 ? 0.35 : 0.75,
+      SHORT_BLOCK: ball?.row >= 3 ? 0.45 : 0.82,
+      BLOCK:       (ball?.spin === 'FAST_TOP' || ball?.spin === 'POWER_SPIN') ? 0.35 : 0.62,
+      PUSH:        ball?.spin === 'SIDESPIN' || ball?.spin === 'SIDESPIN_BACK' ? 0.15 : 0.90,
+      CUT:         ball?.spin === 'SIDESPIN' || ball?.spin === 'SIDESPIN_BACK' ? 0.15 : 0.95,
+      LOB:         0.95,
+    };
+    if (ATTACK_DEFS_BASE[action] !== undefined) return Math.round(applyBonus(ATTACK_DEFS_BASE[action], action) * 100);
+    if (MISC_BASE[action] !== undefined) return Math.round(applyBonus(MISC_BASE[action], action) * 100);
+    return null;
+  };
+
   // ── 버튼 정의 ──
   const btnBase = { border:'none',cursor:'pointer',borderRadius:'8px',fontWeight:700,transition:'all 0.15s',fontFamily:'inherit',lineHeight:1.3,touchAction:'manipulation',WebkitTapHighlightColor:'transparent',minHeight:'44px' };
   const mk = (label, action, color, sub, full) => ({ label, action, color, sub, full });
@@ -992,11 +1012,12 @@ export default function TableTennisChess() {
               <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',width:'100%' }}>
                 {buttons.map(({ label, action, color, sub, full }) => {
                   const lv = skills[action]?.lv ?? 1;
+                  const rate = getSuccessRate(action);
                   return (
                   <button key={action} onClick={() => handlePlayerAction(action)} className="gbtn"
                     style={{ ...btnBase, gridColumn:full?'1/-1':undefined, padding:action==='SMASH'?'16px':'11px 8px', background:color, color:action==='SMASH'?'#000':'#fff', fontSize:'13px', border:action==='BLOCK'?'2px solid #0ea5e9':action==='COUNTER_DRIVE'?'2px solid #7c3aed':'none', boxShadow:action==='SMASH'?'0 0 20px rgba(234,179,8,0.4)':'none' }}>
                     <span style={{ fontSize:'10px', opacity:0.7, fontWeight:700, marginRight:'3px' }}>Lv{lv}</span>{label}
-                    {sub && <><br /><span style={{ fontWeight:400,opacity:0.75,fontSize:'10px' }}>{sub}</span></>}
+                    <br /><span style={{ fontWeight:700, fontSize:'11px', color: rate>=80?'#86efac':rate>=60?'#fde68a':'#fca5a5' }}>{rate !== null ? `${rate}%` : sub ?? ''}</span>
                   </button>
                   );
                 })}
