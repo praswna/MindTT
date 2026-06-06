@@ -536,46 +536,28 @@ export default function TableTennisChess() {
       const sc = isCross ? '#34d399' : '#fbbf24';
       const sc2 = isCross ? '#6ee7b7' : '#fde68a';
 
-      // 공과 겹치지 않게 끝점을 공 반경만큼 후퇴
-      const dx = tx - fx, dy = ty - fy;
-      const dist = Math.sqrt(dx*dx + dy*dy) || 1;
-      const ux = dx/dist, uy = dy/dist;
-      const pad = 24;
-      const ex = tx - ux * pad;
-      const ey = ty - uy * pad;
-
-      // 곡선 컨트롤 포인트 (수직 방향으로 휘어짐)
-      const curve = isCross ? 28 : 14;
-      const cpx = (fx + ex) / 2 - uy * curve;
-      const cpy = (fy + ey) / 2 + ux * curve;
-
-      const pathD = `M ${fx} ${fy} Q ${cpx} ${cpy} ${ex} ${ey}`;
-      const labelX = cpx;
-      const labelY = cpy - 8;
-
       const gId = `ag${isCross?'c':'s'}`;
-      const fId = `af${isCross?'c':'s'}`;
+      const mId = `mh${isCross?'c':'s'}`;
+      const labelX = (fx + tx) / 2;
+      const labelY = (fy + ty) / 2 - 8;
       return (
         <svg viewBox={`0 0 ${W} ${H}`} style={{ position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none',zIndex:5 }} preserveAspectRatio="none">
           <defs>
-            <linearGradient id={gId} gradientUnits="userSpaceOnUse" x1={fx} y1={fy} x2={ex} y2={ey}>
-              <stop offset="0%" stopColor={sc} stopOpacity="0.1"/>
-              <stop offset="60%" stopColor={sc} stopOpacity="0.7"/>
+            <linearGradient id={gId} gradientUnits="userSpaceOnUse" x1={fx} y1={fy} x2={tx} y2={ty}>
+              <stop offset="0%"   stopColor={sc}  stopOpacity="0.15"/>
+              <stop offset="55%"  stopColor={sc}  stopOpacity="0.8"/>
               <stop offset="100%" stopColor={sc2} stopOpacity="1"/>
             </linearGradient>
-            <filter id={fId} x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="2" result="blur"/>
-              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-            </filter>
-            <marker id={`mh${isCross?'c':'s'}`} markerWidth="7" markerHeight="7" refX="3.5" refY="3.5" orient="auto">
-              <circle cx="3.5" cy="3.5" r="3" fill={sc2} opacity="0.95"/>
+            <marker id={mId} markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+              <polygon points="0,0 8,4 0,8" fill={sc2} opacity="0.95"/>
             </marker>
           </defs>
           {/* 글로우 레이어 */}
-          <path d={pathD} fill="none" stroke={sc} strokeWidth="5" opacity="0.15" strokeLinecap="round"/>
-          {/* 메인 곡선 */}
-          <path d={pathD} fill="none" stroke={`url(#${gId})`} strokeWidth="2.2" strokeLinecap="round"
-            strokeDasharray="7 4" markerEnd={`url(#mh${isCross?'c':'s'})`} filter={`url(#${fId})`}/>
+          <line x1={fx} y1={fy} x2={tx} y2={ty} stroke={sc} strokeWidth="6" opacity="0.12" strokeLinecap="round"/>
+          {/* 메인 직선 */}
+          <line x1={fx} y1={fy} x2={tx} y2={ty}
+            stroke={`url(#${gId})`} strokeWidth="2.5" strokeLinecap="round"
+            strokeDasharray="8 4" markerEnd={`url(#${mId})`}/>
           {/* 방향 라벨 */}
           <text x={labelX} y={labelY} fill={sc2} fontSize="9" fontWeight="bold" textAnchor="middle"
             style={{ filter:'drop-shadow(0 1px 3px rgba(0,0,0,1))' }}>
