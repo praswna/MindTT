@@ -61,7 +61,6 @@ export default function TableTennisChess() {
   const [turn, setTurn]                   = useState('PLAYER');
   const [server, setServer]               = useState('PLAYER');
   const [ball, setBall]                   = useState(null);
-  const [pendingAttack, setPendingAttack] = useState(null);
   const [logs, setLogs]                   = useState([]);
   const [skills, setSkills]               = useState(initSkillData());
   const [levelUpFlash, setLevelUpFlash]   = useState(null);
@@ -118,7 +117,6 @@ export default function TableTennisChess() {
     const ns = { ...score, [winner]: score[winner] + 1 };
     setScore(ns);
     setBall(null);
-    setPendingAttack(null);
     addLog(`🎉 ${winner === 'player' ? '득점!' : '실점...'} (${ns.player}:${ns.opponent})`, 'system');
     if (ns.player >= 5) { addLog('🏆 게임 승리!', 'system'); setGameState('GAME_OVER'); return; }
     if (ns.opponent >= 5) { addLog('💀 게임 패배!', 'system'); setGameState('GAME_OVER'); return; }
@@ -127,7 +125,7 @@ export default function TableTennisChess() {
 
   const startGame = () => {
     setScore({ player: 0, opponent: 0 });
-    setServer('PLAYER'); setTurn('PLAYER'); setBall(null); setPendingAttack(null);
+    setServer('PLAYER'); setTurn('PLAYER'); setBall(null);
     setMoveHistory([]);
     setOpponentHistory([]);
     setGameState('PLAYING');
@@ -143,13 +141,9 @@ export default function TableTennisChess() {
     return Math.max(0.15, base - (fromRow === 3 ? 0.20 : 0.10));
   };
 
-  const queueAttack = (action, base, label) => {
-    setPendingAttack({ action, baseChance: applyBonus(base, action), label });
-  };
-
-  const executeAttack = (toCol) => {
-    if (!pendingAttack || !ball) return;
-    const { action, baseChance, label } = pendingAttack;
+  const executeAttack = (action, baseChance, label) => {
+    if (!ball) return;
+    const toCol = rc();
     const fromCol = ball.col, fromRow = ball.row;
     const isCross = fromCol !== toCol;
     const chance = calcChance(baseChance, fromCol, fromRow, toCol);
@@ -158,7 +152,6 @@ export default function TableTennisChess() {
       ? (fromRow === 3 ? `깊은크로스 (${pct}%)` : `크로스 (${pct}%)`)
       : `스트레이트 (${pct}%)`;
     addLog(`나: ${label} → ${dirLabel}`, 'player');
-    setPendingAttack(null);
     useSkill(action);
     if (Math.random() < chance) {
       addLog('🎲 성공!', 'player');
@@ -192,7 +185,7 @@ export default function TableTennisChess() {
       BH_DRIVE:      { base: 0.65, label: '🔵 BH 드라이브' },
       SMASH:         { base: ball?.spin === 'LOB_SPIN' ? 0.92 : ball?.spin === 'BLOCK_RETURN' ? 0.92 : 0.85, label: '💥 스매시' },
     };
-    if (ATTACK_DEFS[action]) { pushHistory(ATTACK_DEFS[action].label, action); queueAttack(action, ATTACK_DEFS[action].base, ATTACK_DEFS[action].label); return; }
+    if (ATTACK_DEFS[action]) { pushHistory(ATTACK_DEFS[action].label, action); executeAttack(action, applyBonus(ATTACK_DEFS[action].base, action), ATTACK_DEFS[action].label); return; }
 
     switch (action) {
       case 'SERVE_SHORT_BACK':      useSkill(action); pushHistory('짧은 하회전', action); addLog('나: [짧은 하회전] — 안전한 오프닝', 'player'); setBall({ row: 1, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
@@ -594,41 +587,6 @@ export default function TableTennisChess() {
     );
   };
 
-  // ── 방향 선택 패널 ──
-  const renderDirectionPanel = () => {
-    if (!pendingAttack || !ball) return null;
-    const fromCol = ball.col, fromRow = ball.row;
-    const bc = pendingAttack.baseChance;
-    const crossPct    = Math.round(Math.min(0.97, bc + 0.05) * 100);
-    const sPenalty    = fromRow === 3 ? 0.20 : 0.10;
-    const straightPct = Math.round(Math.max(0.15, bc - sPenalty) * 100);
-    const colNames    = ['좌(BH)','우(FH)'];
-    const xCol = fromCol === 0 ? 1 : 0;
-    const bonus = Math.round(lvBonus(skills[pendingAttack.action]?.lv ?? 1) * 100);
-    return (
-      <div style={{ width:'100%',display:'flex',flexDirection:'column',gap:'8px' }}>
-        <div style={{ textAlign:'center',fontSize:'11px',color:'#94a3b8',fontWeight:700 }}>
-          {pendingAttack.label} — 방향 선택
-          {bonus > 0 && <span style={{ color:'#34d399',marginLeft:'6px' }}>+{bonus}% 레벨 보너스</span>}
-        </div>
-        <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px' }}>
-          <button onClick={() => executeAttack(xCol)} className="gbtn" style={{ ...btnBase,padding:'12px 8px',background:'#065f46',color:'#fff',fontSize:'12px',border:'2px solid #10b981' }}>
-            ↗ 크로스<br />
-            <span style={{ fontWeight:400,fontSize:'10px',opacity:0.85 }}>{colNames[fromCol]} → {colNames[xCol]}</span><br />
-            <span style={{ fontWeight:700,fontSize:'11px',color:'#6ee7b7' }}>성공률 {crossPct}%</span><br />
-            <span style={{ fontWeight:400,fontSize:'9px',color:'#a7f3d0',opacity:0.8 }}>자연스러운 방향</span>
-          </button>
-          <button onClick={() => executeAttack(fromCol)} className="gbtn" style={{ ...btnBase,padding:'12px 8px',background:'#78350f',color:'#fff',fontSize:'12px',border:'2px solid #f59e0b' }}>
-            ↑ {fromRow===3?'스트레이트(깊은전환)':'스트레이트(방향전환)'}<br />
-            <span style={{ fontWeight:400,fontSize:'10px',opacity:0.85 }}>{colNames[fromCol]} → {colNames[fromCol]}</span><br />
-            <span style={{ fontWeight:700,fontSize:'11px',color:'#fcd34d' }}>성공률 {straightPct}%</span><br />
-            <span style={{ fontWeight:400,fontSize:'9px',color:'#fde68a',opacity:0.8 }}>{fromRow===3?'-20%':'-10%'}</span>
-          </button>
-        </div>
-        <button onClick={() => setPendingAttack(null)} className="gbtn" style={{ ...btnBase,padding:'6px',background:'#1e293b',color:'#64748b',fontSize:'11px',border:'1px solid #334155' }}>← 취소</button>
-      </div>
-    );
-  };
 
   const buttons = getButtons();
 
@@ -738,8 +696,7 @@ export default function TableTennisChess() {
                 <div style={{ width:'24px',height:'24px',border:'2px solid #475569',borderTopColor:'transparent',borderRadius:'50%',animation:'bspin 0.8s linear infinite' }} />
                 <span style={{ fontSize:'13px',fontWeight:700 }}>상대방이 생각 중...</span>
               </div>
-            ) : pendingAttack ? renderDirectionPanel()
-              : !ball ? renderServePanel()
+            ) : !ball ? renderServePanel()
               : buttons && buttons.length > 0 ? (
               <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',width:'100%' }}>
                 {buttons.map(({ label, action, color, sub, full }) => {
