@@ -65,6 +65,7 @@ export default function TableTennisChess() {
   const [skills, setSkills]               = useState(initSkillData());
   const [levelUpFlash, setLevelUpFlash]   = useState(null);
   const [serveTab, setServeTab]           = useState('SHORT'); // 'SHORT' | 'LONG'
+  const [pendingAction, setPendingAction] = useState(null);
   const [moveHistory, setMoveHistory]         = useState([]);
   const [opponentHistory, setOpponentHistory] = useState([]);
   const logsEndRef = useRef(null);
@@ -79,6 +80,9 @@ export default function TableTennisChess() {
     setMoveHistory(p => [{ label, pct }, ...p].slice(0, 8));
   };
   const pushOpponentHistory = (label) => setOpponentHistory(p => [{ label }, ...p].slice(0, 8));
+
+  // 상대 턴 전환 시 카운터 세부 선택 초기화
+  useEffect(() => { if (turn === 'OPPONENT') setPendingAction(null); }, [turn]);
 
   // ── 경험치 처리 ──
   const useSkill = (key) => {
@@ -173,13 +177,30 @@ export default function TableTennisChess() {
   // ── 플레이어 액션 ──
   const handlePlayerAction = (action) => {
     if (turn !== 'PLAYER') return;
+
+    // 카운터 세부 선택
+    if (action === 'COUNTER_DRIVE') { setPendingAction('COUNTER_DRIVE'); return; }
+    if (action === 'CANCEL') { setPendingAction(null); return; }
+    if (action === 'COUNTER_STABLE') {
+      setPendingAction(null);
+      pushHistory('안정적 카운터', 'COUNTER_DRIVE');
+      executeAttack('COUNTER_DRIVE', applyBonus(0.68, 'COUNTER_DRIVE'), '🌀 안정적 카운터');
+      return;
+    }
+    if (action === 'COUNTER_POWER') {
+      setPendingAction(null);
+      pushHistory('파워 카운터', 'COUNTER_DRIVE');
+      executeAttack('POWER_DRIVE', applyBonus(0.42, 'POWER_DRIVE'), '💥 파워 카운터');
+      return;
+    }
+
     const col = rc();
 
     const ATTACK_DEFS = {
       DRIVE:         { base: ball?.spin === 'BLOCK_RETURN' ? 0.85 : 0.70, label: ball?.spin === 'BLOCK_RETURN' ? '🔥 드라이브(뜬공)' : '🔥 드라이브' },
       COUNTER_DRIVE: { base: 0.55, label: '🌀 카운터 드라이브' },
       FLICK:         { base: 0.60, label: '⚡ 플릭' },
-      CHIQUITA:      { base: 0.55, label: '🎯 치키타' },
+      CHIQUITA:      { base: 0.35, label: '🎯 치키타' },
       LOOP:          { base: 0.65, label: '🌀 루프' },
       POWER_DRIVE:   { base: 0.60, label: '💥 파워 드라이브' },
       BH_DRIVE:      { base: 0.65, label: '🔵 BH 드라이브' },
@@ -199,8 +220,30 @@ export default function TableTennisChess() {
       case 'SERVE_KNUCKLE':         useSkill(action); pushHistory('너클', action); addLog('나: [너클] — 무회전 불규칙!', 'player'); setBall({ row: 1, col, spin: 'KNUCKLE' }); setTurn('OPPONENT'); break;
       case 'SERVE_DOUBLE_BOUNCE':   useSkill(action); pushHistory('더블 바운드', action); addLog('나: [더블 바운드] — 두 번 튕김!', 'player'); setBall({ row: 1, col, spin: 'DOUBLE_BOUNCE' }); setTurn('OPPONENT'); break;
       case 'STOP':        useSkill(action); pushHistory('스톱', action); addLog('나: [스톱] 네트 앞에 놓습니다.', 'player'); setBall({ row: 1, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
-      case 'PUSH':        useSkill(action); pushHistory('보스커트', action); addLog('나: [보스커트] 깊숙이 찌릅니다.', 'player'); setBall({ row: 0, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
-      case 'CUT':         useSkill(action); pushHistory('맞커트', action); addLog('나: [맞커트] 길게 깎아 보냅니다.', 'player'); setBall({ row: 0, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
+      case 'PUSH': {
+        useSkill(action); pushHistory('보스커트', action);
+        const isSide = ball?.spin === 'SIDESPIN' || ball?.spin === 'SIDESPIN_BACK';
+        if (isSide) {
+          addLog('나: [보스커트] — 횡회전에 밀려 방향이 꺾입니다!', 'player');
+          if (Math.random() < 0.85) { addLog('공이 옆으로 튕겨 아웃!', 'system'); winPoint('opponent'); }
+          else { addLog('간신히 넘어갔지만 공이 붕 뜹니다!', 'system'); setBall({ row: 0, col, spin: 'BLOCK_RETURN' }); setTurn('OPPONENT'); }
+        } else {
+          addLog('나: [보스커트] 깊숙이 찌릅니다.', 'player'); setBall({ row: 0, col, spin: 'BACKSPIN' }); setTurn('OPPONENT');
+        }
+        break;
+      }
+      case 'CUT': {
+        useSkill(action); pushHistory('맞커트', action);
+        const isSideCut = ball?.spin === 'SIDESPIN' || ball?.spin === 'SIDESPIN_BACK';
+        if (isSideCut) {
+          addLog('나: [맞커트] — 횡회전에 각도를 잃습니다!', 'player');
+          if (Math.random() < 0.85) { addLog('공이 옆으로 튕겨 아웃!', 'system'); winPoint('opponent'); }
+          else { addLog('간신히 넘어갔지만 공이 붕 뜹니다!', 'system'); setBall({ row: 0, col, spin: 'BLOCK_RETURN' }); setTurn('OPPONENT'); }
+        } else {
+          addLog('나: [맞커트] 길게 깎아 보냅니다.', 'player'); setBall({ row: 0, col, spin: 'BACKSPIN' }); setTurn('OPPONENT');
+        }
+        break;
+      }
       case 'SHORT_BLOCK': useSkill(action); pushHistory('쇼트', action); addLog('나: [쇼트] 짧게 밀어냅니다.', 'player'); setBall({ row: 1, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
       case 'LOB': {
         useSkill(action); pushHistory('로빙', action);
@@ -328,17 +371,27 @@ export default function TableTennisChess() {
     // ── 짧은공 (row 1) ──
     if (row === 1) {
       if (spin === 'BACKSPIN' || spin === 'SIDESPIN' || spin === 'SIDESPIN_BACK') {
+        const isSide = spin === 'SIDESPIN' || spin === 'SIDESPIN_BACK';
         const r = Math.random();
-        if      (r < 0.22) { pushOpponentHistory('스톱'); addLog('상대: [스톱]', 'opponent');     setBall({ row: 2, col: aiToCol, spin: 'BACKSPIN' }); }
-        else if (r < 0.44) { pushOpponentHistory('보스커트'); addLog('상대: [보스커트]', 'opponent'); setBall({ row: 3, col: aiToCol, spin: 'BACKSPIN' }); }
-        else if (r < 0.58) { pushOpponentHistory('쇼트'); addLog('상대: [쇼트]', 'opponent');     setBall({ row: 2, col: aiToCol, spin: 'BACKSPIN' }); }
+        if (r < 0.22) {
+          pushOpponentHistory('스톱'); addLog('상대: [스톱]', 'opponent'); setBall({ row: 2, col: aiToCol, spin: 'BACKSPIN' });
+        } else if (r < 0.44) {
+          addLog('상대: [보스커트]', 'opponent');
+          if (isSide && Math.random() < 0.85) {
+            pushOpponentHistory('보스커트 에러'); addLog('횡회전에 밀려 아웃!', 'system'); winPoint('player'); return;
+          } else if (isSide) {
+            pushOpponentHistory('보스커트'); addLog('간신히 넘어갔지만 공이 붕 뜹니다!', 'system'); setBall({ row: 3, col: aiToCol, spin: 'BLOCK_RETURN' });
+          } else {
+            pushOpponentHistory('보스커트'); setBall({ row: 3, col: aiToCol, spin: 'BACKSPIN' });
+          }
+        } else if (r < 0.58) { pushOpponentHistory('쇼트'); addLog('상대: [쇼트]', 'opponent');     setBall({ row: 2, col: aiToCol, spin: 'BACKSPIN' }); }
         else if (r < 0.78) {
           addLog(`상대: ⚡ [플릭] ${dirLabel}!`, 'opponent');
           if (Math.random() < calcChance(0.60, aiFromCol, row, aiToCol)) { pushOpponentHistory('플릭'); setBall({ row: 3, col: aiToCol, spin: 'TOPSPIN', fromRow: row, fromCol: aiFromCol }); }
           else { addLog('상대: 플릭 미스!', 'system'); winPoint('player'); return; }
         } else {
           addLog(`상대: 🎯 [치키타] ${dirLabel}!`, 'opponent');
-          if (Math.random() < calcChance(0.55, aiFromCol, row, aiToCol)) { pushOpponentHistory('치키타'); setBall({ row: 3, col: aiToCol, spin: 'TOPSPIN', fromRow: row, fromCol: aiFromCol }); }
+          if (Math.random() < calcChance(0.35, aiFromCol, row, aiToCol)) { pushOpponentHistory('치키타'); setBall({ row: 3, col: aiToCol, spin: 'TOPSPIN', fromRow: row, fromCol: aiFromCol }); }
           else { addLog('상대: 치키타 미스!', 'system'); winPoint('player'); return; }
         }
       } else if (spin === 'TOPSPIN' || spin === 'SIDESPIN_TOP') {
@@ -514,6 +567,14 @@ export default function TableTennisChess() {
   const getButtons = () => {
     // 서브 탭 UI는 별도 렌더러에서 처리 → 여기서는 null 반환
     if (!ball) return null;
+
+    // 카운터 세부 선택 중
+    if (pendingAction === 'COUNTER_DRIVE') return [
+      { label:'🌀 안정적 카운터', action:'COUNTER_STABLE', color:'#4a1d96', sub:'성공률 높음', full:true },
+      { label:'💥 파워드라이브',   action:'COUNTER_POWER',  color:'#7f1d1d', sub:'강타·고위험', full:true },
+      { label:'↩️ 취소',          action:'CANCEL',          color:'#1e293b', sub:null,         full:true },
+    ];
+
     const { row, spin } = ball;
 
     // 짧은공 리시브
