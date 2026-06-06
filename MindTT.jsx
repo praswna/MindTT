@@ -66,6 +66,7 @@ export default function TableTennisChess() {
   const [skills, setSkills]               = useState(initSkillData());
   const [levelUpFlash, setLevelUpFlash]   = useState(null);
   const [serveTab, setServeTab]           = useState('SHORT'); // 'SHORT' | 'LONG'
+  const [moveHistory, setMoveHistory]     = useState([]);
   const logsEndRef = useRef(null);
 
   useEffect(() => {
@@ -73,6 +74,7 @@ export default function TableTennisChess() {
   }, [logs]);
 
   const addLog = (msg, type = 'system') => setLogs(p => [...p, { text: msg, type }]);
+  const pushHistory = (label) => setMoveHistory(p => [label, ...p].slice(0, 8));
 
   // ── 경험치 처리 ──
   const useSkill = (key) => {
@@ -121,6 +123,7 @@ export default function TableTennisChess() {
   const startGame = () => {
     setScore({ player: 0, opponent: 0 });
     setServer('PLAYER'); setTurn('PLAYER'); setBall(null); setPendingAttack(null);
+    setMoveHistory([]);
     setGameState('PLAYING');
     setServeTab('SHORT');
     setLogs([{ text: '🏁 게임 시작! 스킬을 반복 사용해 레벨업하세요.', type: 'system' }]);
@@ -183,25 +186,25 @@ export default function TableTennisChess() {
       BH_DRIVE:      { base: 0.65, label: '🔵 BH 드라이브' },
       SMASH:         { base: ball?.spin === 'LOB_SPIN' ? 0.92 : ball?.spin === 'BLOCK_RETURN' ? 0.92 : 0.85, label: '💥 스매시' },
     };
-    if (ATTACK_DEFS[action]) { queueAttack(action, ATTACK_DEFS[action].base, ATTACK_DEFS[action].label); return; }
+    if (ATTACK_DEFS[action]) { pushHistory(ATTACK_DEFS[action].label); queueAttack(action, ATTACK_DEFS[action].base, ATTACK_DEFS[action].label); return; }
 
     switch (action) {
-      case 'SERVE_SHORT_BACK':      useSkill(action); addLog('나: [짧은 하회전] — 안전한 오프닝', 'player'); setBall({ row: 1, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
-      case 'SERVE_LONG_FAST':       useSkill(action); addLog('나: [긴 빠른 상회전] — 기습!', 'player'); setBall({ row: 0, col, spin: 'FAST_TOP' }); setTurn('OPPONENT'); break;
-      case 'SERVE_SHORT_TOP':       useSkill(action); addLog('나: [짧은 상회전] — 커트 함정', 'player'); setBall({ row: 1, col, spin: 'TOPSPIN' }); setTurn('OPPONENT'); break;
-      case 'SERVE_SHORT_SIDE':      useSkill(action); addLog('나: [짧은 횡회전] — 방향 혼란', 'player'); setBall({ row: 1, col, spin: 'SIDESPIN' }); setTurn('OPPONENT'); break;
-      case 'SERVE_LONG_BACK':       useSkill(action); addLog('나: [긴 하회전] — 깊고 낮게', 'player'); setBall({ row: 0, col, spin: 'LONG_BACK' }); setTurn('OPPONENT'); break;
-      case 'SERVE_LONG_SIDE':       useSkill(action); addLog('나: [긴 횡회전] — 깊은 사이드스핀', 'player'); setBall({ row: 0, col, spin: 'LONG_SIDE' }); setTurn('OPPONENT'); break;
-      case 'SERVE_SHORT_SIDE_BACK': useSkill(action); addLog('나: [짧은 횡하회전] — 복합 회전', 'player'); setBall({ row: 1, col, spin: 'SIDESPIN_BACK' }); setTurn('OPPONENT'); break;
-      case 'SERVE_SHORT_SIDE_TOP':  useSkill(action); addLog('나: [짧은 횡상회전] — 복합 속임수', 'player'); setBall({ row: 1, col, spin: 'SIDESPIN_TOP' }); setTurn('OPPONENT'); break;
-      case 'SERVE_KNUCKLE':         useSkill(action); addLog('나: [너클] — 무회전 불규칙!', 'player'); setBall({ row: 1, col, spin: 'KNUCKLE' }); setTurn('OPPONENT'); break;
-      case 'SERVE_DOUBLE_BOUNCE':   useSkill(action); addLog('나: [더블 바운드] — 두 번 튕김!', 'player'); setBall({ row: 1, col, spin: 'DOUBLE_BOUNCE' }); setTurn('OPPONENT'); break;
-      case 'STOP':        useSkill(action); addLog('나: [스톱] 네트 앞에 놓습니다.', 'player'); setBall({ row: 1, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
-      case 'PUSH':        useSkill(action); addLog('나: [보스커트] 깊숙이 찌릅니다.', 'player'); setBall({ row: 0, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
-      case 'CUT':         useSkill(action); addLog('나: [맞커트] 길게 깎아 보냅니다.', 'player'); setBall({ row: 0, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
-      case 'SHORT_BLOCK': useSkill(action); addLog('나: [쇼트] 짧게 밀어냅니다.', 'player'); setBall({ row: 1, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
+      case 'SERVE_SHORT_BACK':      useSkill(action); pushHistory('짧은 하회전'); addLog('나: [짧은 하회전] — 안전한 오프닝', 'player'); setBall({ row: 1, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
+      case 'SERVE_LONG_FAST':       useSkill(action); pushHistory('긴 빠른 상회전'); addLog('나: [긴 빠른 상회전] — 기습!', 'player'); setBall({ row: 0, col, spin: 'FAST_TOP' }); setTurn('OPPONENT'); break;
+      case 'SERVE_SHORT_TOP':       useSkill(action); pushHistory('짧은 상회전'); addLog('나: [짧은 상회전] — 커트 함정', 'player'); setBall({ row: 1, col, spin: 'TOPSPIN' }); setTurn('OPPONENT'); break;
+      case 'SERVE_SHORT_SIDE':      useSkill(action); pushHistory('짧은 횡회전'); addLog('나: [짧은 횡회전] — 방향 혼란', 'player'); setBall({ row: 1, col, spin: 'SIDESPIN' }); setTurn('OPPONENT'); break;
+      case 'SERVE_LONG_BACK':       useSkill(action); pushHistory('긴 하회전'); addLog('나: [긴 하회전] — 깊고 낮게', 'player'); setBall({ row: 0, col, spin: 'LONG_BACK' }); setTurn('OPPONENT'); break;
+      case 'SERVE_LONG_SIDE':       useSkill(action); pushHistory('긴 횡회전'); addLog('나: [긴 횡회전] — 깊은 사이드스핀', 'player'); setBall({ row: 0, col, spin: 'LONG_SIDE' }); setTurn('OPPONENT'); break;
+      case 'SERVE_SHORT_SIDE_BACK': useSkill(action); pushHistory('횡하회전'); addLog('나: [짧은 횡하회전] — 복합 회전', 'player'); setBall({ row: 1, col, spin: 'SIDESPIN_BACK' }); setTurn('OPPONENT'); break;
+      case 'SERVE_SHORT_SIDE_TOP':  useSkill(action); pushHistory('횡상회전'); addLog('나: [짧은 횡상회전] — 복합 속임수', 'player'); setBall({ row: 1, col, spin: 'SIDESPIN_TOP' }); setTurn('OPPONENT'); break;
+      case 'SERVE_KNUCKLE':         useSkill(action); pushHistory('너클'); addLog('나: [너클] — 무회전 불규칙!', 'player'); setBall({ row: 1, col, spin: 'KNUCKLE' }); setTurn('OPPONENT'); break;
+      case 'SERVE_DOUBLE_BOUNCE':   useSkill(action); pushHistory('더블 바운드'); addLog('나: [더블 바운드] — 두 번 튕김!', 'player'); setBall({ row: 1, col, spin: 'DOUBLE_BOUNCE' }); setTurn('OPPONENT'); break;
+      case 'STOP':        useSkill(action); pushHistory('스톱'); addLog('나: [스톱] 네트 앞에 놓습니다.', 'player'); setBall({ row: 1, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
+      case 'PUSH':        useSkill(action); pushHistory('보스커트'); addLog('나: [보스커트] 깊숙이 찌릅니다.', 'player'); setBall({ row: 0, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
+      case 'CUT':         useSkill(action); pushHistory('맞커트'); addLog('나: [맞커트] 길게 깎아 보냅니다.', 'player'); setBall({ row: 0, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
+      case 'SHORT_BLOCK': useSkill(action); pushHistory('쇼트'); addLog('나: [쇼트] 짧게 밀어냅니다.', 'player'); setBall({ row: 1, col, spin: 'BACKSPIN' }); setTurn('OPPONENT'); break;
       case 'LOB': {
-        useSkill(action);
+        useSkill(action); pushHistory('로빙');
         // 로빙은 의도적으로 상대에게 기회를 주는 수비 기술
         // 레벨이 높으면 높게 올려 스매시 각도를 줄이는 효과 (AI 스매시 성공률 하락)
         const lobLv = skills['LOB']?.lv ?? 1;
@@ -212,7 +215,7 @@ export default function TableTennisChess() {
         break;
       }
       case 'BLOCK': {
-        useSkill(action);
+        useSkill(action); pushHistory('블록');
         const hard = ball?.spin === 'FAST_TOP' || ball?.spin === 'POWER_SPIN';
         const base = hard ? 0.35 : 0.62;
         const chance = applyBonus(base, 'BLOCK');
@@ -439,7 +442,7 @@ export default function TableTennisChess() {
       );
     })() : null;
     return (
-      <div style={{ background:'#166534',borderRadius:'10px',border:'5px solid #292524',boxShadow:'0 8px 32px rgba(0,0,0,0.6)',overflow:'hidden',position:'relative',aspectRatio:'152.5/274',width:'100%' }}>
+      <div style={{ background:'#1a4d8c',borderRadius:'10px',border:'5px solid #0f2a52',boxShadow:'0 8px 32px rgba(0,0,0,0.6)',overflow:'hidden',position:'relative',aspectRatio:'152.5/274',width:'100%' }}>
         <div style={{ position:'absolute',left:'50%',top:0,bottom:0,width:'1px',background:'rgba(255,255,255,0.28)',transform:'translateX(-50%)',pointerEvents:'none',zIndex:2 }} />
         {pathEl}
         <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gridTemplateRows:'repeat(4,1fr)',position:'relative',zIndex:3,height:'100%' }}>
@@ -631,19 +634,29 @@ export default function TableTennisChess() {
         <div style={{ width:'100%',maxWidth:'480px',display:'flex',flexDirection:'column',gap:'6px' }}>
           {/* 탁구대 + 양옆 점수 */}
           <div style={{ display:'flex',alignItems:'stretch',gap:'6px' }}>
-            {/* 상대 점수 (왼쪽) */}
-            <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'4px' }}>
-              <span style={{ fontSize:'11px',color:'#94a3b8' }}>상대</span>
+            {/* 상대 점수 (왼쪽) — 히스토리 위, 점수 아래 */}
+            <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',gap:'4px',paddingBottom:'4px' }}>
+              <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',gap:'2px',width:'100%',overflow:'hidden' }}>
+                {moveHistory.map((h,i) => (
+                  <span key={i} style={{ fontSize:'8px',color:i===0?'#93c5fd':'rgba(148,163,184,0.5)',fontWeight:i===0?700:400,textAlign:'center',lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:'100%' }}>{h}</span>
+                ))}
+              </div>
+              <span style={{ fontSize:'11px',color:'#94a3b8',marginTop:'4px' }}>상대</span>
               <span style={{ fontSize:'32px',fontWeight:900,color:'#f87171',lineHeight:1 }}>{score.opponent}</span>
               {server==='OPPONENT' && <span style={{ fontSize:'16px' }}>🏓</span>}
             </div>
             {/* 탁구대 */}
             <div style={{ flex:'0 0 56%' }}>{renderTableWithPath()}</div>
-            {/* 내 점수 (오른쪽) */}
-            <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'4px' }}>
+            {/* 내 점수 (오른쪽) — 점수 위, 히스토리 아래 */}
+            <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-start',gap:'4px',paddingTop:'4px' }}>
               <span style={{ fontSize:'11px',color:'#94a3b8' }}>나</span>
               <span style={{ fontSize:'32px',fontWeight:900,color:'#60a5fa',lineHeight:1 }}>{score.player}</span>
               {server==='PLAYER' && <span style={{ fontSize:'16px' }}>🏓</span>}
+              <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',gap:'2px',width:'100%',overflow:'hidden',marginTop:'4px' }}>
+                {moveHistory.map((h,i) => (
+                  <span key={i} style={{ fontSize:'8px',color:i===0?'#93c5fd':'rgba(148,163,184,0.5)',fontWeight:i===0?700:400,textAlign:'center',lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:'100%' }}>{h}</span>
+                ))}
+              </div>
             </div>
           </div>
 
