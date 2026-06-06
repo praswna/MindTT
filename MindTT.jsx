@@ -548,7 +548,7 @@ export default function TableTennisChess() {
               <stop offset="55%"  stopColor={sc}  stopOpacity="0.8"/>
               <stop offset="100%" stopColor={sc2} stopOpacity="1"/>
             </linearGradient>
-            <marker id={mId} markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+            <marker id={mId} markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto">
               <polygon points="0,0 8,4 0,8" fill={sc2} opacity="0.95"/>
             </marker>
           </defs>
