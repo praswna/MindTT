@@ -179,7 +179,7 @@ export default function TableTennisChess() {
       DRIVE:         { base: ball?.spin === 'BLOCK_RETURN' ? 0.85 : 0.70, label: ball?.spin === 'BLOCK_RETURN' ? '🔥 드라이브(뜬공)' : '🔥 드라이브' },
       COUNTER_DRIVE: { base: 0.55, label: '🌀 카운터 드라이브' },
       FLICK:         { base: 0.60, label: '⚡ 플릭' },
-      CHIQUITA:      { base: 0.55, label: '🎯 치키타' },
+      CHIQUITA:      { base: 0.35, label: '🎯 치키타' },
       LOOP:          { base: 0.65, label: '🌀 루프' },
       POWER_DRIVE:   { base: 0.60, label: '💥 파워 드라이브' },
       BH_DRIVE:      { base: 0.65, label: '🔵 BH 드라이브' },
@@ -370,7 +370,7 @@ export default function TableTennisChess() {
           else { addLog('상대: 플릭 미스!', 'system'); winPoint('player'); return; }
         } else {
           addLog(`상대: 🎯 [치키타] ${dirLabel}!`, 'opponent');
-          if (Math.random() < calcChance(0.55, aiFromCol, row, aiToCol)) { pushOpponentHistory('치키타'); setBall({ row: 3, col: aiToCol, spin: 'TOPSPIN', fromRow: row, fromCol: aiFromCol }); }
+          if (Math.random() < calcChance(0.35, aiFromCol, row, aiToCol)) { pushOpponentHistory('치키타'); setBall({ row: 3, col: aiToCol, spin: 'TOPSPIN', fromRow: row, fromCol: aiFromCol }); }
           else { addLog('상대: 치키타 미스!', 'system'); winPoint('player'); return; }
         }
       } else if (spin === 'TOPSPIN' || spin === 'SIDESPIN_TOP') {
