@@ -571,12 +571,6 @@ export default function TableTennisChess() {
     })() : null;
     return (
       <div style={{ background:'#1a4d8c',borderRadius:'10px',border:'5px solid #0f2a52',boxShadow:'0 8px 32px rgba(0,0,0,0.6)',overflow:'visible',position:'relative',aspectRatio:'152.5/274',width:'100%' }}>
-        {/* 세로 RPM 게이지 — 오른쪽 상단 */}
-        {ball && (
-          <div style={{ position:'absolute', top:'4px', right:'-36px', width:'28px', height:'140px', background:'rgba(15,23,42,0.82)', borderRadius:'8px', border:'1px solid rgba(148,163,184,0.15)', boxShadow:'0 4px 16px rgba(0,0,0,0.5)', zIndex:10, display:'flex', flexDirection:'column' }}>
-            {renderSpinGauge()}
-          </div>
-        )}
         <div style={{ position:'absolute',left:'50%',top:0,bottom:0,width:'1px',background:'rgba(255,255,255,0.28)',transform:'translateX(-50%)',pointerEvents:'none',zIndex:2 }} />
         {pathEl}
         <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gridTemplateRows:'repeat(4,1fr)',position:'relative',zIndex:3,height:'100%' }}>
@@ -587,12 +581,64 @@ export default function TableTennisChess() {
             return (
               <div key={`${r}-${c}`} style={{ position:'relative',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',borderRight:c===0?'1px solid rgba(255,255,255,0.2)':'none',borderBottom:r<3?'1px solid rgba(255,255,255,0.12)':'none',borderTop:r===2?'3px solid rgba(255,255,255,0.85)':'none',background:here?'rgba(255,255,255,0.08)':isFrom?'rgba(255,255,255,0.03)':'transparent' }}>
                 {!here && <span style={{ fontSize:'9px',color:'rgba(255,255,255,0.12)',fontWeight:700,userSelect:'none' }}>{r<=1?'상대':'내'}{r%2===0?' 긴':' 짧'}</span>}
-                {here && meta && (
-                  <div style={{ display:'flex',flexDirection:'column',alignItems:'center',gap:'4px' }}>
-                    <div style={{ width:'26px',height:'26px',borderRadius:'50%',background:meta.color,border:'1.5px solid rgba(255,255,255,0.4)',boxShadow:`0 0 18px 7px ${meta.glow}`,animation:meta.pulse?'bpulse 0.9s infinite':'bbounce 0.55s infinite alternate' }} />
-                    <span style={{ fontSize:'9px',fontWeight:700,color:'#fff',background:'rgba(0,0,0,0.75)',padding:'1px 6px',borderRadius:'4px',whiteSpace:'nowrap' }}>{meta.label}</span>
-                  </div>
-                )}
+                {here && meta && (() => {
+                  const rpm = SPIN_RPM[ball.spin] ?? 0;
+                  const absRpm = Math.abs(rpm);
+                  const rpmLabel = absRpm >= 100 ? `${absRpm.toLocaleString()} RPM` : '0 RPM';
+                  const spinColor = meta.color;
+                  // 회전 방향 화살표 SVG (공 위에 곡선 원호 화살표)
+                  const spin = ball.spin;
+                  const isTop   = ['TOPSPIN','LOOP_SPIN','POWER_SPIN','FAST_TOP','SIDESPIN_TOP'].includes(spin);
+                  const isBack  = ['BACKSPIN','LONG_BACK','SIDESPIN_BACK'].includes(spin);
+                  const isSide  = ['SIDESPIN','LONG_SIDE'].includes(spin);
+                  const isNone  = spin === 'KNUCKLE';
+                  // SVG 원호 화살표: cx=18, cy=18, r=12
+                  // 상회전: 반시계방향 상단 호, 하회전: 시계방향 하단 호
+                  const S = 36; // SVG 크기
+                  const cx = 18, cy = 18, R = 11;
+                  // 원호 path: 상회전 → 위쪽, 하회전 → 아래쪽, 횡회전 → 옆
+                  let arcPath = null, arrowTip = null;
+                  if (isTop) {
+                    // 상단 반원 (반시계): 오른쪽→위→왼쪽
+                    arcPath = `M ${cx+R} ${cy} A ${R} ${R} 0 0 0 ${cx-R} ${cy}`;
+                    arrowTip = { x: cx-R, y: cy, dx: 0, dy: 3 };
+                  } else if (isBack) {
+                    // 하단 반원 (시계): 왼쪽→아래→오른쪽
+                    arcPath = `M ${cx-R} ${cy} A ${R} ${R} 0 0 0 ${cx+R} ${cy}`;
+                    arrowTip = { x: cx+R, y: cy, dx: 0, dy: -3 };
+                  } else if (isSide) {
+                    // 오른쪽 반원 (시계): 위→오른쪽→아래
+                    arcPath = `M ${cx} ${cy-R} A ${R} ${R} 0 0 1 ${cx} ${cy+R}`;
+                    arrowTip = { x: cx, y: cy+R, dx: -3, dy: 0 };
+                  }
+                  return (
+                    <div style={{ display:'flex',flexDirection:'column',alignItems:'center',gap:'2px' }}>
+                      {/* 공 + 회전 화살표 */}
+                      <div style={{ position:'relative', width:`${S}px`, height:`${S}px` }}>
+                        {/* 공 */}
+                        <div style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)', width:'22px', height:'22px', borderRadius:'50%', background:spinColor, border:'1.5px solid rgba(255,255,255,0.5)', boxShadow:`0 0 14px 5px ${meta.glow}`, animation:meta.pulse?'bpulse 0.9s infinite':'bbounce 0.55s infinite alternate' }} />
+                        {/* 회전 화살표 */}
+                        {arcPath && (
+                          <svg width={S} height={S} style={{ position:'absolute', inset:0, pointerEvents:'none' }}>
+                            <defs>
+                              <marker id="spinarrow" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto">
+                                <polygon points="0,0 5,2.5 0,5" fill={spinColor} opacity="0.95"/>
+                              </marker>
+                            </defs>
+                            <path d={arcPath} fill="none" stroke={spinColor} strokeWidth="2.2" opacity="0.85" markerEnd="url(#spinarrow)" strokeLinecap="round"/>
+                          </svg>
+                        )}
+                        {isNone && (
+                          <svg width={S} height={S} style={{ position:'absolute', inset:0, pointerEvents:'none' }}>
+                            <line x1={cx-R} y1={cy} x2={cx+R} y2={cy} stroke={spinColor} strokeWidth="2" opacity="0.7" strokeDasharray="3 2"/>
+                          </svg>
+                        )}
+                      </div>
+                      {/* RPM 수치 */}
+                      <span style={{ fontSize:'8px', fontWeight:700, color:spinColor, background:'rgba(0,0,0,0.7)', padding:'1px 5px', borderRadius:'3px', whiteSpace:'nowrap', lineHeight:1.3 }}>{rpmLabel}</span>
+                    </div>
+                  );
+                })()}
               </div>
             );
           }))}
