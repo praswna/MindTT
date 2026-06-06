@@ -868,7 +868,7 @@ export default function TableTennisChess() {
       mk('🪂 로빙','LOB','#164e63','피하기',true),
     ];
     if (row===3 && spin==='BLOCK_RETURN') return [mk('🔥 드라이브 (뜬공!)','DRIVE','#b45309','+15% 찬스',true), mk('🛡️ 블록 (뜬공루프)','BLOCK','#164e63','뜬공 반복',true)];
-    if (row===3 && spin==='LOB_SPIN')     return [mk('💥 스매시! (로빙)','SMASH','#854d0e','성공률 92%!',true), mk('🔥 드라이브','DRIVE','#9a3412','안전하게'), mk('🌀 루프','LOOP','#b45309','강한 회전')];
+    if (row===3 && spin==='LOB_SPIN')     return [mk('💥 스매시! (로빙)','SMASH','#854d0e','성공률 92%!',true), mk('🔥 드라이브','DRIVE','#9a3412','안전하게')];
     return [];
   };
 
