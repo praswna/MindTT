@@ -39,6 +39,51 @@ const initSkillData = () => {
   return d;
 };
 
+// ── 스핀 RPM 정의 ──
+const SPIN_RPM = {
+  BACKSPIN:      -6500,
+  TOPSPIN:        5000,
+  LOOP_SPIN:      8500,
+  POWER_SPIN:    11000,
+  SIDESPIN:       5500,
+  SIDESPIN_BACK: -5000,
+  SIDESPIN_TOP:   4500,
+  FAST_TOP:       7500,
+  LONG_BACK:     -7000,
+  LONG_SIDE:      5800,
+  DOUBLE_BOUNCE: -3500,
+  KNUCKLE:           0,
+  LOB_SPIN:       3000,
+  FLOAT:          1000,
+  BLOCK_RETURN:   2500,
+};
+const MAX_RPM = 12000;
+
+// RPM이 각 기술 성공률에 미치는 영향
+const getRpmModifier = (action, spin) => {
+  if (!spin) return 0;
+  const rpm = SPIN_RPM[spin] ?? 0;
+  const n = Math.abs(rpm) / MAX_RPM; // 0~1 정규화
+  const isBack = rpm < -2000;
+  const isTop  = rpm >  2000;
+  const modifiers = {
+    DRIVE:         isBack ? -n * 0.18 : 0,                       // 하회전에 드라이브 어려움
+    LOOP:          isBack ?  n * 0.12 : isTop ? -n * 0.08 : 0,  // 하회전엔 루프 유리
+    COUNTER_DRIVE: isTop  ? -n * 0.12 : 0,                       // 강한 상회전에 카운터 어려움
+    BLOCK:         isTop  ? -n * 0.14 : 0,                       // 상회전 블록 어려움
+    CUT:           isBack ?  n * 0.10 : isTop ? -n * 0.12 : 0,  // 하회전엔 커트 유리
+    PUSH:          isBack ?  n * 0.08 : isTop ? -n * 0.10 : 0,
+    STOP:          isBack ?  n * 0.06 : isTop ? -n * 0.10 : 0,
+    FLICK:         isBack ? -n * 0.08 : 0,                       // 하회전 플릭 위험
+    CHIQUITA:      isBack ? -n * 0.06 : 0,
+    BH_DRIVE:      isBack ? -n * 0.12 : 0,
+    SHORT_BLOCK:   isTop  ? -n * 0.08 : 0,
+    SMASH:         isTop  ? -n * 0.04 : 0,
+    POWER_DRIVE:   isBack ? -n * 0.10 : 0,
+  };
+  return modifiers[action] ?? 0;
+};
+
 // 서브 카테고리 정의
 const SERVES_SHORT = [
   { label:'짧은 하회전',   action:'SERVE_SHORT_BACK',      color:'#1e40af', sub:'안전/정석' },
@@ -105,7 +150,11 @@ export default function TableTennisChess() {
     });
   };
 
-  const applyBonus = (base, key) => Math.min(0.97, base + lvBonus(skills[key]?.lv ?? 1));
+  const applyBonus = (base, key) => {
+    const lv = lvBonus(skills[key]?.lv ?? 1);
+    const rpm = getRpmModifier(key, ball?.spin);
+    return Math.min(0.97, Math.max(0.05, base + lv + rpm));
+  };
 
   const checkServerChange = (total) => {
     if (total > 0 && total % 2 === 0) {
@@ -560,6 +609,42 @@ export default function TableTennisChess() {
     );
   };
 
+  // ── RPM 게이지 렌더러 ──
+  const renderSpinGauge = () => {
+    if (!ball) return null;
+    const rpm = SPIN_RPM[ball.spin] ?? 0;
+    const pct = (rpm / MAX_RPM) * 50 + 50; // 0~100% 중 50이 중앙
+    const absRpm = Math.abs(rpm);
+    const isBack = rpm < -1000;
+    const isTop  = rpm >  1000;
+    const trackColor = isBack ? '#3b82f6' : isTop ? '#f97316' : '#94a3b8';
+    const label = rpm === 0 ? '너클 (무회전)' : `${isBack ? '하회전' : isTop ? '상회전' : '미약'} ${absRpm.toLocaleString()} RPM`;
+    const fillLeft  = rpm < 0 ? `${pct}%` : '50%';
+    const fillWidth = `${(absRpm / MAX_RPM) * 50}%`;
+    return (
+      <div style={{ width:'100%', padding:'6px 0 2px' }}>
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'4px' }}>
+          <span style={{ fontSize:'9px', color:'#60a5fa', fontWeight:700 }}>⬇ 하회전</span>
+          <span style={{ fontSize:'10px', fontWeight:900, color: trackColor, letterSpacing:'0.5px' }}>{label}</span>
+          <span style={{ fontSize:'9px', color:'#f97316', fontWeight:700 }}>상회전 ⬆</span>
+        </div>
+        <div style={{ position:'relative', height:'10px', background:'rgba(15,23,42,0.8)', borderRadius:'5px', overflow:'visible', border:'1px solid rgba(255,255,255,0.08)' }}>
+          {/* 배경 그라디언트 */}
+          <div style={{ position:'absolute', inset:0, borderRadius:'4px', background:'linear-gradient(to right, rgba(59,130,246,0.15), rgba(15,23,42,0) 50%, rgba(249,115,22,0.15))', pointerEvents:'none' }} />
+          {/* 중앙 기준선 */}
+          <div style={{ position:'absolute', left:'50%', top:'-3px', bottom:'-3px', width:'2px', background:'rgba(255,255,255,0.25)', transform:'translateX(-50%)', borderRadius:'1px' }} />
+          {/* RPM 채움 바 */}
+          {absRpm > 0 && (
+            <div style={{ position:'absolute', top:'1px', bottom:'1px', left:fillLeft, width:fillWidth, background:`linear-gradient(${isBack?'to left':'to right'}, ${trackColor}44, ${trackColor})`, borderRadius:'3px', boxShadow:`0 0 8px 2px ${trackColor}55`, transition:'all 0.4s ease' }} />
+          )}
+          {/* 바늘 */}
+          <div style={{ position:'absolute', left:`${pct}%`, top:'-4px', bottom:'-4px', width:'4px', background:'#fff', borderRadius:'2px', transform:'translateX(-50%)', boxShadow:`0 0 6px 2px ${trackColor}, 0 0 2px rgba(255,255,255,0.9)`, transition:'left 0.4s ease', zIndex:2 }} />
+        </div>
+        {/* RPM 영향 미리보기 (해당 기술 있을 때) */}
+      </div>
+    );
+  };
+
   // ── 버튼 정의 ──
   const btnBase = { border:'none',cursor:'pointer',borderRadius:'8px',fontWeight:700,transition:'all 0.15s',fontFamily:'inherit',lineHeight:1.3,touchAction:'manipulation',WebkitTapHighlightColor:'transparent',minHeight:'44px' };
   const mk = (label, action, color, sub, full) => ({ label, action, color, sub, full });
@@ -748,6 +833,13 @@ export default function TableTennisChess() {
             <div ref={logsEndRef} />
           </div>
 
+          {/* RPM 스핀 게이지 */}
+          {ball && (
+            <div style={{ background:'rgba(15,23,42,0.85)',borderRadius:'10px',padding:'8px 12px',border:'1px solid rgba(148,163,184,0.1)' }}>
+              {renderSpinGauge()}
+            </div>
+          )}
+
           {/* 액션 패널 */}
           <div style={{ background:'rgba(30,41,59,0.92)',borderRadius:'12px',padding:'10px',border:'1px solid rgba(148,163,184,0.1)',minHeight:'110px',display:'flex',alignItems:'center',justifyContent:'center' }}>
             {gameState === 'GAME_OVER' ? (
@@ -762,13 +854,20 @@ export default function TableTennisChess() {
               <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',width:'100%' }}>
                 {buttons.map(({ label, action, color, sub, full }) => {
                   const lv = skills[action]?.lv ?? 1;
-                  const bonus = Math.round(lvBonus(lv) * 100);
+                  const lvPct = Math.round(lvBonus(lv) * 100);
+                  const rpmMod = getRpmModifier(action, ball?.spin);
+                  const rpmPct = Math.round(rpmMod * 100);
                   return (
                   <button key={action} onClick={() => handlePlayerAction(action)} className="gbtn"
                     style={{ ...btnBase, gridColumn:full?'1/-1':undefined, padding:action==='SMASH'?'16px':'11px 8px', background:color, color:action==='SMASH'?'#000':'#fff', fontSize:'13px', border:action==='BLOCK'?'2px solid #0ea5e9':action==='COUNTER_DRIVE'?'2px solid #7c3aed':'none', boxShadow:action==='SMASH'?'0 0 20px rgba(234,179,8,0.4)':'none' }}>
                     {label}
                     {sub && <><br /><span style={{ fontWeight:400,opacity:0.75,fontSize:'10px' }}>{sub}</span></>}
-                    {bonus > 0 && <><br /><span style={{ fontWeight:700,fontSize:'10px',color:'#6ee7b7' }}>+{bonus}%</span></>}
+                    {(lvPct > 0 || rpmPct !== 0) && (
+                      <><br /><span style={{ fontWeight:700,fontSize:'10px' }}>
+                        {lvPct > 0 && <span style={{ color:'#6ee7b7' }}>+{lvPct}%</span>}
+                        {rpmPct !== 0 && <span style={{ color: rpmPct > 0 ? '#34d399' : '#f87171', marginLeft: lvPct > 0 ? '4px' : 0 }}>RPM{rpmPct > 0 ? `+${rpmPct}` : rpmPct}%</span>}
+                      </span></>
+                    )}
                   </button>
                   );
                 })}
