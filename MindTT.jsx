@@ -617,7 +617,7 @@ export default function TableTennisChess() {
     return (
       <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'3px', height:'100%', padding:'4px 0' }}>
         {/* 상회전 라벨 */}
-        <span style={{ fontSize:'8px', color:'#f97316', fontWeight:700, lineHeight:1 }}>상⬆</span>
+        <span style={{ fontSize:'8px', color: isTop ? '#f97316' : 'rgba(148,163,184,0.4)', fontWeight: isTop ? 700 : 400, lineHeight:1 }}>상⬆</span>
         {/* 세로 트랙 */}
         <div style={{ position:'relative', flex:1, width:'10px', background:'rgba(15,23,42,0.8)', borderRadius:'5px', border:'1px solid rgba(255,255,255,0.12)', overflow:'visible', minHeight:'60px' }}>
           {/* 배경 그라디언트 */}
@@ -632,7 +632,7 @@ export default function TableTennisChess() {
           <div style={{ position:'absolute', top:`${needlePct}%`, left:'-4px', right:'-4px', height:'4px', background:'#fff', borderRadius:'2px', transform:'translateY(-50%)', boxShadow:`0 0 6px 2px ${trackColor}, 0 0 2px rgba(255,255,255,0.9)`, transition:'top 0.4s ease', zIndex:2 }} />
         </div>
         {/* 하회전 라벨 */}
-        <span style={{ fontSize:'8px', color:'#60a5fa', fontWeight:700, lineHeight:1 }}>하⬇</span>
+        <span style={{ fontSize:'8px', color: isBack ? '#3b82f6' : 'rgba(148,163,184,0.4)', fontWeight: isBack ? 700 : 400, lineHeight:1 }}>하⬇</span>
         {/* RPM 수치 */}
         <span style={{ fontSize:'8px', fontWeight:900, color:trackColor, lineHeight:1, writingMode:'horizontal-tb', textAlign:'center', whiteSpace:'nowrap' }}>{rpmText}</span>
       </div>
