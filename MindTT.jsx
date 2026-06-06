@@ -419,7 +419,7 @@ export default function TableTennisChess() {
 
   // ── 테이블 렌더 ──
   const renderTableWithPath = () => {
-    const cellH = 90, cellW = 100, W = 200, H = 360;
+    const cellH = 72, cellW = 100, W = 200, H = 288;
     const haspath = ball?.fromRow !== undefined && ball?.fromCol !== undefined;
     const pathEl = haspath ? (() => {
       const fx = ball.fromCol * cellW + cellW / 2;
@@ -448,7 +448,7 @@ export default function TableTennisChess() {
             const isFrom = ball?.fromRow === r && ball?.fromCol === c;
             const meta = here ? (spinMeta[ball.spin] || spinMeta.BACKSPIN) : null;
             return (
-              <div key={`${r}-${c}`} style={{ position:'relative',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:`${cellH}px`,borderRight:c===0?'1px solid rgba(255,255,255,0.2)':'none',borderBottom:r<3?'1px solid rgba(255,255,255,0.12)':'none',borderTop:r===2?'3px solid rgba(255,255,255,0.85)':'none',background:here?'rgba(255,255,255,0.08)':isFrom?'rgba(255,255,255,0.03)':'transparent' }}>
+              <div key={`${r}-${c}`} style={{ position:'relative',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',height:`${cellH}px`,borderRight:c===0?'1px solid rgba(255,255,255,0.2)':'none',borderBottom:r<3?'1px solid rgba(255,255,255,0.12)':'none',borderTop:r===2?'3px solid rgba(255,255,255,0.85)':'none',background:here?'rgba(255,255,255,0.08)':isFrom?'rgba(255,255,255,0.03)':'transparent',minHeight:0 }}>
                 {!here && <span style={{ fontSize:'9px',color:'rgba(255,255,255,0.12)',fontWeight:700,userSelect:'none' }}>{r<=1?'상대':'내'}{r%2===0?' 긴':' 짧'}</span>}
                 {here && meta && (
                   <div style={{ display:'flex',flexDirection:'column',alignItems:'center',gap:'4px' }}>
@@ -465,7 +465,7 @@ export default function TableTennisChess() {
   };
 
   // ── 버튼 정의 ──
-  const btnBase = { border:'none',cursor:'pointer',borderRadius:'8px',fontWeight:700,transition:'all 0.15s',fontFamily:'inherit',lineHeight:1.3 };
+  const btnBase = { border:'none',cursor:'pointer',borderRadius:'8px',fontWeight:700,transition:'all 0.15s',fontFamily:'inherit',lineHeight:1.3,touchAction:'manipulation',WebkitTapHighlightColor:'transparent',minHeight:'44px' };
   const mk = (label, action, color, sub, full) => ({ label, action, color, sub, full });
 
   const getButtons = () => {
@@ -529,7 +529,7 @@ export default function TableTennisChess() {
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'7px' }}>
           {list.map(({ label, action, color, sub }) => (
             <button key={action} onClick={() => handlePlayerAction(action)} className="gbtn"
-              style={{ ...btnBase, padding:'10px 8px', background:color, color:'#fff', fontSize:'12px' }}>
+              style={{ ...btnBase, padding:'11px 8px', background:color, color:'#fff', fontSize:'13px' }}>
               {label}<br />
               <span style={{ fontWeight:400, opacity:0.75, fontSize:'10px' }}>{sub}</span>
             </button>
@@ -578,14 +578,15 @@ export default function TableTennisChess() {
   const buttons = getButtons();
 
   return (
-    <div style={{ minHeight:'100vh',background:'linear-gradient(160deg,#0f172a 0%,#1e293b 55%,#0f172a 100%)',color:'#f1f5f9',display:'flex',flexDirection:'column',alignItems:'center',padding:'24px 16px',fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif" }}>
+    <div style={{ minHeight:'100dvh',background:'linear-gradient(160deg,#0f172a 0%,#1e293b 55%,#0f172a 100%)',color:'#f1f5f9',display:'flex',flexDirection:'column',alignItems:'center',padding:'8px 12px',paddingTop:'max(8px, env(safe-area-inset-top))',paddingBottom:'max(8px, env(safe-area-inset-bottom))',fontFamily:"'Noto Sans KR','Apple SD Gothic Neo',sans-serif",boxSizing:'border-box' }}>
       <style>{`
         @keyframes bbounce { from{transform:translateY(0)} to{transform:translateY(-6px)} }
         @keyframes bpulse  { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(1.15)} }
         @keyframes bspin   { to{transform:rotate(360deg)} }
         @keyframes lvflash { 0%{transform:translateX(-50%) scale(1)} 40%{transform:translateX(-50%) scale(1.08)} 100%{transform:translateX(-50%) scale(1)} }
         .gbtn:hover { filter:brightness(1.18); }
-        .gbtn:active { transform:scale(0.97); }
+        .gbtn:active { transform:scale(0.96); }
+        * { box-sizing: border-box; }
       `}</style>
 
       {/* 레벨업 플래시 */}
@@ -596,7 +597,7 @@ export default function TableTennisChess() {
       )}
 
       {/* 점수 */}
-      <div style={{ width:'100%',maxWidth:'420px',background:'rgba(15,23,42,0.95)',borderRadius:'10px',padding:'8px 14px',display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px',border:'1px solid rgba(148,163,184,0.12)' }}>
+      <div style={{ width:'100%',maxWidth:'480px',background:'rgba(15,23,42,0.95)',borderRadius:'10px',padding:'6px 14px',display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px',border:'1px solid rgba(148,163,184,0.12)' }}>
         <div style={{ display:'flex',alignItems:'center',gap:'6px' }}>
           <span style={{ fontSize:'11px',color:'#94a3b8' }}>상대</span>
           <span style={{ fontSize:'26px',fontWeight:900,color:'#f87171',lineHeight:1 }}>{score.opponent}</span>
@@ -641,11 +642,11 @@ export default function TableTennisChess() {
           </button>
         </div>
       ) : (
-        <div style={{ width:'100%',maxWidth:'420px',display:'flex',flexDirection:'column',gap:'10px' }}>
+        <div style={{ width:'100%',maxWidth:'480px',display:'flex',flexDirection:'column',gap:'6px' }}>
           {renderTableWithPath()}
 
           {/* 로그 */}
-          <div style={{ height:'180px',background:'rgba(2,6,23,0.92)',borderRadius:'10px',padding:'8px 12px',overflowY:'auto',fontSize:'12px',border:'1px solid rgba(148,163,184,0.1)',display:'flex',flexDirection:'column',gap:'2px' }}>
+          <div style={{ height:'110px',background:'rgba(2,6,23,0.92)',borderRadius:'10px',padding:'6px 12px',overflowY:'auto',fontSize:'12px',border:'1px solid rgba(148,163,184,0.1)',display:'flex',flexDirection:'column',gap:'2px' }}>
             {logs.map((log, i) => (
               <div key={i} style={{ color:log.type==='player'?'#93c5fd':log.type==='opponent'?'#fca5a5':'#fde68a', fontWeight:log.type==='system'||log.type==='levelup'?700:400, textAlign:log.type==='system'||log.type==='levelup'?'center':'left', padding:log.type==='system'||log.type==='levelup'?'2px 0':0 }}>
                 {log.text}
@@ -655,7 +656,7 @@ export default function TableTennisChess() {
           </div>
 
           {/* 액션 패널 */}
-          <div style={{ background:'rgba(30,41,59,0.92)',borderRadius:'12px',padding:'12px',border:'1px solid rgba(148,163,184,0.1)',minHeight:'120px',display:'flex',alignItems:'center',justifyContent:'center' }}>
+          <div style={{ background:'rgba(30,41,59,0.92)',borderRadius:'12px',padding:'10px',border:'1px solid rgba(148,163,184,0.1)',minHeight:'110px',display:'flex',alignItems:'center',justifyContent:'center' }}>
             {gameState === 'GAME_OVER' ? (
               <button onClick={startGame} className="gbtn" style={{ ...btnBase,width:'100%',padding:'12px',background:'#4f46e5',color:'#fff',fontSize:'15px' }}>다시 하기</button>
             ) : turn === 'OPPONENT' ? (
@@ -669,7 +670,7 @@ export default function TableTennisChess() {
               <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',width:'100%' }}>
                 {buttons.map(({ label, action, color, sub, full }) => (
                   <button key={action} onClick={() => handlePlayerAction(action)} className="gbtn"
-                    style={{ ...btnBase, gridColumn:full?'1/-1':undefined, padding:action==='SMASH'?'16px':'10px 8px', background:color, color:action==='SMASH'?'#000':'#fff', fontSize:'12px', border:action==='BLOCK'?'2px solid #0ea5e9':action==='COUNTER_DRIVE'?'2px solid #7c3aed':'none', boxShadow:action==='SMASH'?'0 0 20px rgba(234,179,8,0.4)':'none' }}>
+                    style={{ ...btnBase, gridColumn:full?'1/-1':undefined, padding:action==='SMASH'?'16px':'11px 8px', background:color, color:action==='SMASH'?'#000':'#fff', fontSize:'13px', border:action==='BLOCK'?'2px solid #0ea5e9':action==='COUNTER_DRIVE'?'2px solid #7c3aed':'none', boxShadow:action==='SMASH'?'0 0 20px rgba(234,179,8,0.4)':'none' }}>
                     {label}
                     {sub && <><br /><span style={{ fontWeight:400,opacity:0.75,fontSize:'10px' }}>{sub}</span></>}
                   </button>
