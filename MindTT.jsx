@@ -439,7 +439,7 @@ export default function TableTennisChess() {
       );
     })() : null;
     return (
-      <div style={{ background:'#166534',borderRadius:'10px',border:'5px solid #292524',boxShadow:'0 8px 32px rgba(0,0,0,0.6)',overflow:'hidden',position:'relative',aspectRatio:'152.5/274',width:'55%',margin:'0 auto' }}>
+      <div style={{ background:'#166534',borderRadius:'10px',border:'5px solid #292524',boxShadow:'0 8px 32px rgba(0,0,0,0.6)',overflow:'hidden',position:'relative',aspectRatio:'152.5/274',width:'100%' }}>
         <div style={{ position:'absolute',left:'50%',top:0,bottom:0,width:'1px',background:'rgba(255,255,255,0.28)',transform:'translateX(-50%)',pointerEvents:'none',zIndex:2 }} />
         {pathEl}
         <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gridTemplateRows:'repeat(4,1fr)',position:'relative',zIndex:3,height:'100%' }}>
@@ -596,20 +596,6 @@ export default function TableTennisChess() {
         </div>
       )}
 
-      {/* 점수 */}
-      <div style={{ width:'100%',maxWidth:'480px',background:'rgba(15,23,42,0.95)',borderRadius:'10px',padding:'6px 14px',display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'6px',border:'1px solid rgba(148,163,184,0.12)' }}>
-        <div style={{ display:'flex',alignItems:'center',gap:'6px' }}>
-          <span style={{ fontSize:'11px',color:'#94a3b8' }}>상대</span>
-          <span style={{ fontSize:'26px',fontWeight:900,color:'#f87171',lineHeight:1 }}>{score.opponent}</span>
-          {server==='OPPONENT' && <span style={{ fontSize:'9px',color:'#fca5a5',background:'rgba(239,68,68,0.15)',padding:'1px 5px',borderRadius:'10px' }}>🏓</span>}
-        </div>
-        <div style={{ fontSize:'11px',fontWeight:700,color:'#334155' }}>vs</div>
-        <div style={{ display:'flex',alignItems:'center',gap:'6px' }}>
-          {server==='PLAYER' && <span style={{ fontSize:'9px',color:'#93c5fd',background:'rgba(96,165,250,0.15)',padding:'1px 5px',borderRadius:'10px' }}>🏓</span>}
-          <span style={{ fontSize:'26px',fontWeight:900,color:'#60a5fa',lineHeight:1 }}>{score.player}</span>
-          <span style={{ fontSize:'11px',color:'#94a3b8' }}>나</span>
-        </div>
-      </div>
 
       {gameState === 'START' ? (
         <div style={{ width:'100%',maxWidth:'420px',background:'rgba(30,41,59,0.92)',borderRadius:'16px',padding:'28px 22px',border:'1px solid rgba(148,163,184,0.14)',boxShadow:'0 8px 32px rgba(0,0,0,0.5)',marginTop:'16px' }}>
@@ -643,7 +629,23 @@ export default function TableTennisChess() {
         </div>
       ) : (
         <div style={{ width:'100%',maxWidth:'480px',display:'flex',flexDirection:'column',gap:'6px' }}>
-          {renderTableWithPath()}
+          {/* 탁구대 + 양옆 점수 */}
+          <div style={{ display:'flex',alignItems:'stretch',gap:'6px' }}>
+            {/* 상대 점수 (왼쪽) */}
+            <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'4px' }}>
+              <span style={{ fontSize:'11px',color:'#94a3b8' }}>상대</span>
+              <span style={{ fontSize:'32px',fontWeight:900,color:'#f87171',lineHeight:1 }}>{score.opponent}</span>
+              {server==='OPPONENT' && <span style={{ fontSize:'16px' }}>🏓</span>}
+            </div>
+            {/* 탁구대 */}
+            <div style={{ flex:'0 0 56%' }}>{renderTableWithPath()}</div>
+            {/* 내 점수 (오른쪽) */}
+            <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:'4px' }}>
+              <span style={{ fontSize:'11px',color:'#94a3b8' }}>나</span>
+              <span style={{ fontSize:'32px',fontWeight:900,color:'#60a5fa',lineHeight:1 }}>{score.player}</span>
+              {server==='PLAYER' && <span style={{ fontSize:'16px' }}>🏓</span>}
+            </div>
+          </div>
 
           {/* 로그 */}
           <div style={{ height:'110px',background:'rgba(2,6,23,0.92)',borderRadius:'10px',padding:'6px 12px',overflowY:'auto',fontSize:'12px',border:'1px solid rgba(148,163,184,0.1)',display:'flex',flexDirection:'column',gap:'2px' }}>
