@@ -422,10 +422,11 @@ export default function TableTennisChess() {
     if (row === 1) {
       if (spin === 'BACKSPIN' || spin === 'SIDESPIN' || spin === 'SIDESPIN_BACK') {
         const isSide = spin === 'SIDESPIN' || spin === 'SIDESPIN_BACK';
+        // 짧은 공 대응: 안전 플레이 위주 (공격은 20% 이하로 제한)
         const r = Math.random();
-        if (r < 0.22) {
+        if (r < 0.30) {
           pushOpponentHistory('스톱'); addLog('상대: [스톱]', 'opponent'); setBall({ row: 2, col: aiToCol, spin: 'BACKSPIN' });
-        } else if (r < 0.44) {
+        } else if (r < 0.55) {
           addLog('상대: [보스커트]', 'opponent');
           if (isSide && Math.random() < 0.85) {
             pushOpponentHistory('보스커트 에러'); addLog('횡회전에 밀려 아웃!', 'system'); winPoint('player'); return;
@@ -434,8 +435,8 @@ export default function TableTennisChess() {
           } else {
             pushOpponentHistory('보스커트'); setBall({ row: 3, col: aiToCol, spin: 'BACKSPIN' });
           }
-        } else if (r < 0.58) { pushOpponentHistory('쇼트'); addLog('상대: [쇼트]', 'opponent');     setBall({ row: 2, col: aiToCol, spin: 'BACKSPIN' }); }
-        else if (r < 0.78) {
+        } else if (r < 0.80) { pushOpponentHistory('쇼트'); addLog('상대: [쇼트]', 'opponent');     setBall({ row: 2, col: aiToCol, spin: 'BACKSPIN' }); }
+        else if (r < 0.92) {
           addLog(`상대: ⚡ [플릭] ${dirLabel}!`, 'opponent');
           if (Math.random() < calcChance(0.60, aiFromCol, row, aiToCol)) { pushOpponentHistory('플릭'); setBall({ row: 3, col: aiToCol, spin: 'TOPSPIN', fromRow: row, fromCol: aiFromCol }); }
           else { addLog('상대: 플릭 미스!', 'system'); winPoint('player'); return; }
