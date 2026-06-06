@@ -419,7 +419,7 @@ export default function TableTennisChess() {
 
   // ── 테이블 렌더 ──
   const renderTableWithPath = () => {
-    const cellH = 72, cellW = 100, W = 200, H = 288;
+    const cellH = 90, cellW = 100, W = 200, H = 360;
     const haspath = ball?.fromRow !== undefined && ball?.fromCol !== undefined;
     const pathEl = haspath ? (() => {
       const fx = ball.fromCol * cellW + cellW / 2;
