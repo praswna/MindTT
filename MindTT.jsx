@@ -994,7 +994,7 @@ export default function TableTennisChess() {
                   return (
                   <button key={action} onClick={() => handlePlayerAction(action)} className="gbtn"
                     style={{ ...btnBase, gridColumn:full?'1/-1':undefined, padding:action==='SMASH'?'16px':'11px 8px', background:color, color:action==='SMASH'?'#000':'#fff', fontSize:'13px', border:action==='BLOCK'?'2px solid #0ea5e9':action==='COUNTER_DRIVE'?'2px solid #7c3aed':'none', boxShadow:action==='SMASH'?'0 0 20px rgba(234,179,8,0.4)':'none' }}>
-                    {label}
+                    <span style={{ fontSize:'10px', opacity:0.7, fontWeight:700, marginRight:'3px' }}>Lv{lv}</span>{label}
                     {sub && <><br /><span style={{ fontWeight:400,opacity:0.75,fontSize:'10px' }}>{sub}</span></>}
                   </button>
                   );
