@@ -839,9 +839,11 @@ export default function TableTennisChess() {
     if (row===3 && (spin==='SIDESPIN'||spin==='LONG_SIDE')) return [mk('맞커트','CUT','#334155','방향 주의'), mk('🔥 드라이브','DRIVE','#9a3412','방향 선택'), mk('🌀 루프','LOOP','#b45309','강한 회전')];
     if (row===3 && spin==='KNUCKLE') return [mk('맞커트','CUT','#334155','⚠불규칙'), mk('🔥 드라이브','DRIVE','#9a3412','⚠어려움')];
     if (row===3 && (spin==='TOPSPIN'||spin==='FAST_TOP'||spin==='LOOP_SPIN')) return [
-      mk('🛡️ 블록','BLOCK','#0c4a6e', spin==='LOOP_SPIN'?'루프!뜬공주의':spin==='FAST_TOP'?'빠른서브':'뜬공주의',true),
-      mk('🌀 카운터','COUNTER_DRIVE','#4a1d96','방향 선택 →',true),
-      mk('🪂 로빙','LOB','#164e63','높게 올리기',true),
+      mk('🛡️ 블록','BLOCK','#0c4a6e', spin==='LOOP_SPIN'?'루프!뜬공주의':spin==='FAST_TOP'?'빠른서브':'뜬공주의'),
+      mk('🌀 카운터','COUNTER_DRIVE','#4a1d96','방향 선택 →'),
+      mk('🔥 드라이브','DRIVE','#9a3412','강하게 받아'),
+      mk('🌀 루프','LOOP','#b45309','회전으로'),
+      mk('🪂 로빙','LOB','#164e63','높게 올리기'),
     ];
     if (row===3 && spin==='POWER_SPIN') return [
       mk('🛡️ 블록 (위험!)','BLOCK','#7f1d1d','성공률 30%',true),
