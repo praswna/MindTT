@@ -98,7 +98,7 @@ const getRpmModifier = (action, spin) => {
     FLICK:         isBack ? -n * 0.08 : 0,                       // 하회전 플릭 위험
     CHIQUITA:      isBack ? -n * 0.06 : 0,
     BH_DRIVE:      isBack ? -n * 0.12 : 0,
-    SHORT_BLOCK:   isBack ? -n * 0.22 : isTop ? -n * 0.08 : 0,  // 하회전 공을 쇼트하면 회전에 밀림
+    SHORT_BLOCK:   isBack ? -n * 0.75 : isTop ? -n * 0.08 : 0,  // 하회전 공을 쇼트하면 네트에 걸림
     SMASH:         isTop  ? -n * 0.04 : 0,
     POWER_DRIVE:   isBack ? -n * 0.10 : 0,
   };
