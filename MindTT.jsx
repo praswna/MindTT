@@ -106,15 +106,15 @@ const getRpmModifier = (action, spin) => {
 };
 
 // 속도가 각 기술 성공률에 미치는 영향 (빠를수록 어려움)
-const getSpeedModifier = (action, spin) => {
-  const speed = BALL_SPEED[spin] ?? 40;
+const getSpeedModifier = (action, spin, speedOverride) => {
+  const speed = speedOverride ?? BALL_SPEED[spin] ?? 40;
   // 기준속도 45 km/h 기준. 초과할수록 페널티, 미만이면 소폭 보너스
   const delta = (speed - 45) / 100; // 예: 90km → +0.45, 22km → -0.23
   const modifiers = {
     // 수비기술: 빠른 공에 크게 불리
     BLOCK:       -delta * 0.55,
     SHORT_BLOCK: -delta * 0.40,
-    STOP:        -delta * 0.35,
+    STOP:        -delta * 0.70,
     CUT:         -delta * 0.30,
     PUSH:        -delta * 0.25,
     LOB:         -delta * 0.20,
@@ -203,7 +203,7 @@ export default function TableTennisChess() {
   const applyBonus = (base, key) => {
     const lv    = lvBonus(skills[key]?.lv ?? 1);
     const rpm   = getRpmModifier(key, ball?.spin);
-    const spd   = getSpeedModifier(key, ball?.spin);
+    const spd   = getSpeedModifier(key, ball?.spin, ball?.speed);
     return Math.min(0.97, Math.max(0.05, base + lv + rpm + spd));
   };
 
@@ -374,7 +374,7 @@ export default function TableTennisChess() {
         const shortP = applyBonus(ball?.row >= 3 ? 0.45 : 0.82, 'SHORT_BLOCK');
         if (Math.random() < shortP) {
           addLog(`나: [쇼트] 길게 눌러 보냅니다.${ball?.row >= 3 ? ' (롱→쇼트 성공!)' : ''}`, 'player');
-          setBall({ row: 0, col, spin: 'BACKSPIN' });
+          setBall({ row: 0, col, spin: 'BACKSPIN', speed: 72 });
         } else {
           addLog('나: [쇼트 실패] 네트에 걸렸습니다!', 'player');
           opponentScores(); return;
