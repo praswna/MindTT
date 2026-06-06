@@ -858,13 +858,11 @@ export default function TableTennisChess() {
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'7px' }}>
           {list.map(({ label, action, color, sub }) => {
             const lv = skills[action]?.lv ?? 1;
-            const pct = Math.round(lvBonus(lv) * 100);
             return (
               <button key={action} onClick={() => handlePlayerAction(action)} className="gbtn"
                 style={{ ...btnBase, padding:'11px 8px', background:color, color:'#fff', fontSize:'13px' }}>
-                {label}<br />
+                <span style={{ fontSize:'10px', opacity:0.7, fontWeight:700, marginRight:'3px' }}>Lv{lv}</span>{label}<br />
                 <span style={{ fontWeight:400, opacity:0.75, fontSize:'10px' }}>{sub}</span>
-                {pct > 0 && <><br /><span style={{ fontWeight:700, fontSize:'10px', color:'#6ee7b7' }}>+{pct}%</span></>}
               </button>
             );
           })}
