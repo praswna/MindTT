@@ -603,10 +603,10 @@ export default function TableTennisChess() {
     const rpmText = absRpm >= 100 ? `${absRpm.toLocaleString()} RPM` : '0 RPM';
     // 스핀 종류별 화살표 각도 (0°=위/상회전, 시계방향)
     const SPIN_ANGLE = {
-      TOPSPIN:180, LOOP_SPIN:180, POWER_SPIN:180, FAST_TOP:180, LOB_SPIN:180, BLOCK_RETURN:180,
-      BACKSPIN:0, LONG_BACK:0, DOUBLE_BOUNCE:0,
-      SIDESPIN:270, LONG_SIDE:270,
-      SIDESPIN_BACK:315, SIDESPIN_TOP:225,
+      TOPSPIN:0, LOOP_SPIN:0, POWER_SPIN:0, FAST_TOP:0, LOB_SPIN:0, BLOCK_RETURN:0,
+      BACKSPIN:180, LONG_BACK:180, DOUBLE_BOUNCE:180,
+      SIDESPIN:90, LONG_SIDE:90,
+      SIDESPIN_BACK:135, SIDESPIN_TOP:45,
       KNUCKLE:null, FLOAT:null,
     };
     const angle = SPIN_ANGLE[ball.spin];
@@ -632,19 +632,16 @@ export default function TableTennisChess() {
             {/* 글로우 효과 */}
             <circle cx={cx} cy={cy} r={34} fill="none" stroke={spinColor} strokeWidth="8" strokeOpacity="0.06"/>
           </svg>
-          {/* 회전 화살표 */}
+          {/* 회전 화살표 — 뾰족한 직선 화살표, angle 기준 회전 */}
           {angle != null ? (
-            <svg width={S} height={S} style={{ position:'absolute', inset:0, pointerEvents:'none' }}>
-              <defs>
-                <marker id="sw-arrow" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto">
-                  <polygon points="0,0 6,3 0,6" fill={spinColor}/>
-                </marker>
-              </defs>
-              {/* 화살표 선 */}
-              <line x1={bx} y1={by} x2={ax} y2={ay}
-                stroke={spinColor} strokeWidth="2.5" strokeLinecap="round"
-                markerEnd="url(#sw-arrow)"
-                style={{ filter:`drop-shadow(0 0 4px ${spinColor})` }}/>
+            <svg width={S} height={S} style={{ position:'absolute', inset:0, pointerEvents:'none', filter:`drop-shadow(0 0 5px ${spinColor})` }}>
+              {/* 0°=위 기준으로 그린 화살표를 angle만큼 회전 */}
+              <g transform={`rotate(${angle}, ${cx}, ${cy})`}>
+                {/* 스템: 중심에서 위로 */}
+                <rect x={cx - 1.5} y={cy - 20} width={3} height={20} rx={1.5} fill={spinColor}/>
+                {/* 헤드: 뾰족한 삼각형 */}
+                <polygon points={`${cx},${cy-30} ${cx-7},${cy-18} ${cx+7},${cy-18}`} fill={spinColor}/>
+              </g>
             </svg>
           ) : (
             /* 너클: X 표시 */
