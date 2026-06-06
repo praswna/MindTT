@@ -681,8 +681,8 @@ export default function TableTennisChess() {
               const isCenter = log.type==='system'||log.type==='levelup';
               return (
               <div key={i} style={{ color:log.type==='player'?'#93c5fd':log.type==='opponent'?'#fca5a5':'#fde68a', fontWeight:isLatest||isCenter?700:400, textAlign:isCenter?'center':'left', padding:isCenter?'2px 0':0, display:'flex', alignItems:'center', gap:'4px', justifyContent:isCenter?'center':'flex-start' }}>
-                {isLatest && <span style={{ color:'#fbbf24', fontWeight:900, flexShrink:0 }}>{'<<'}</span>}
                 <span>{log.text}</span>
+                {isLatest && <span style={{ color:'#fbbf24', fontWeight:900, flexShrink:0 }}>{'<<'}</span>}
               </div>
               );
             })}
