@@ -133,20 +133,20 @@ const getSpeedModifier = (action, spin) => {
 };
 
 // 서브 카테고리 정의
-const SERVES_SHORT = [
-  { label:'짧은 하회전',   action:'SERVE_SHORT_BACK',      color:'#1e40af', sub:'안전/정석' },
-  { label:'짧은 상회전',   action:'SERVE_SHORT_TOP',       color:'#78350f', sub:'커트 함정' },
-  { label:'짧은 횡회전',   action:'SERVE_SHORT_SIDE',      color:'#4c1d95', sub:'방향 혼란' },
-  { label:'짧은 횡하회전', action:'SERVE_SHORT_SIDE_BACK', color:'#5b21b6', sub:'복합 회전' },
-  { label:'짧은 횡상회전', action:'SERVE_SHORT_SIDE_TOP',  color:'#6d28d9', sub:'복합 속임수' },
-  { label:'너클 (무회전)', action:'SERVE_KNUCKLE',          color:'#374151', sub:'불규칙 바운드' },
-  { label:'더블 바운드',   action:'SERVE_DOUBLE_BOUNCE',   color:'#065f46', sub:'매우 짧게' },
+const ALL_SERVES = [
+  { label:'짧은 하회전',   action:'SERVE_SHORT_BACK',      color:'#1e40af', sub:'짧·하' },
+  { label:'짧은 상회전',   action:'SERVE_SHORT_TOP',       color:'#78350f', sub:'짧·상' },
+  { label:'짧은 횡회전',   action:'SERVE_SHORT_SIDE',      color:'#4c1d95', sub:'짧·횡' },
+  { label:'짧은 횡하',     action:'SERVE_SHORT_SIDE_BACK', color:'#5b21b6', sub:'짧·횡하' },
+  { label:'짧은 횡상',     action:'SERVE_SHORT_SIDE_TOP',  color:'#6d28d9', sub:'짧·횡상' },
+  { label:'너클',          action:'SERVE_KNUCKLE',          color:'#374151', sub:'무회전' },
+  { label:'더블바운드',    action:'SERVE_DOUBLE_BOUNCE',   color:'#065f46', sub:'짧·2바' },
+  { label:'긴 상회전',     action:'SERVE_LONG_FAST',       color:'#7f1d1d', sub:'긴·빠름' },
+  { label:'긴 하회전',     action:'SERVE_LONG_BACK',       color:'#1e3a5f', sub:'긴·하' },
+  { label:'긴 횡회전',     action:'SERVE_LONG_SIDE',       color:'#312e81', sub:'긴·횡' },
 ];
-const SERVES_LONG = [
-  { label:'긴 빠른 상회전', action:'SERVE_LONG_FAST', color:'#7f1d1d', sub:'기습 에이스' },
-  { label:'긴 하회전',      action:'SERVE_LONG_BACK', color:'#1e3a5f', sub:'낮고 깊게' },
-  { label:'긴 횡회전',      action:'SERVE_LONG_SIDE', color:'#312e81', sub:'깊은 사이드' },
-];
+const SERVES_SHORT = ALL_SERVES; // legacy compat
+const SERVES_LONG  = ALL_SERVES;
 
 export default function TableTennisChess() {
   const [gameState, setGameState]         = useState('START');
@@ -848,33 +848,18 @@ export default function TableTennisChess() {
     return [];
   };
 
-  // ── 서브 탭 렌더러 ──
+  // ── 서브 렌더러 ──
   const renderServePanel = () => {
-    const list = serveTab === 'SHORT' ? SERVES_SHORT : SERVES_LONG;
     return (
-      <div style={{ width:'100%',display:'flex',flexDirection:'column',gap:'8px' }}>
-        {/* 탭 */}
-        <div style={{ display:'flex',gap:'6px' }}>
-          {[['SHORT','📌 짧은 서브'],['LONG','🚀 긴 서브']].map(([tab, label]) => (
-            <button key={tab} onClick={() => setServeTab(tab)} className="gbtn"
-              style={{ ...btnBase, flex:1, padding:'7px', fontSize:'12px',
-                background: serveTab===tab ? '#3b82f6' : 'rgba(30,41,59,0.8)',
-                color: serveTab===tab ? '#fff' : '#94a3b8',
-                border: serveTab===tab ? '2px solid #60a5fa' : '2px solid rgba(148,163,184,0.2)',
-              }}>
-              {label}
-            </button>
-          ))}
-        </div>
-        {/* 서브 버튼 그리드 */}
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'7px' }}>
-          {list.map(({ label, action, color, sub }) => {
+      <div style={{ width:'100%' }}>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'5px' }}>
+          {ALL_SERVES.map(({ label, action, color, sub }) => {
             const lv = skills[action]?.lv ?? 1;
             return (
               <button key={action} onClick={() => handlePlayerAction(action)} className="gbtn"
-                style={{ ...btnBase, padding:'11px 8px', background:color, color:'#fff', fontSize:'13px' }}>
-                <span style={{ fontSize:'10px', opacity:0.7, fontWeight:700, marginRight:'3px' }}>Lv{lv}</span>{label}<br />
-                <span style={{ fontWeight:400, opacity:0.75, fontSize:'10px' }}>{sub}</span>
+                style={{ ...btnBase, padding:'7px 4px', background:color, color:'#fff', fontSize:'11px', minHeight:'36px' }}>
+                <span style={{ fontSize:'9px', opacity:0.7, fontWeight:700, marginRight:'2px' }}>Lv{lv}</span>{label}<br />
+                <span style={{ fontWeight:400, opacity:0.7, fontSize:'9px' }}>{sub}</span>
               </button>
             );
           })}
