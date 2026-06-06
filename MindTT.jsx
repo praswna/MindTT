@@ -567,7 +567,13 @@ export default function TableTennisChess() {
       );
     })() : null;
     return (
-      <div style={{ background:'#1a4d8c',borderRadius:'10px',border:'5px solid #0f2a52',boxShadow:'0 8px 32px rgba(0,0,0,0.6)',overflow:'hidden',position:'relative',aspectRatio:'152.5/274',width:'100%' }}>
+      <div style={{ background:'#1a4d8c',borderRadius:'10px',border:'5px solid #0f2a52',boxShadow:'0 8px 32px rgba(0,0,0,0.6)',overflow:'visible',position:'relative',aspectRatio:'152.5/274',width:'100%' }}>
+        {/* 세로 RPM 게이지 — 오른쪽 상단 */}
+        {ball && (
+          <div style={{ position:'absolute', top:'4px', right:'-36px', width:'28px', height:'140px', background:'rgba(15,23,42,0.82)', borderRadius:'8px', border:'1px solid rgba(148,163,184,0.15)', boxShadow:'0 4px 16px rgba(0,0,0,0.5)', zIndex:10, display:'flex', flexDirection:'column' }}>
+            {renderSpinGauge()}
+          </div>
+        )}
         <div style={{ position:'absolute',left:'50%',top:0,bottom:0,width:'1px',background:'rgba(255,255,255,0.28)',transform:'translateX(-50%)',pointerEvents:'none',zIndex:2 }} />
         {pathEl}
         <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gridTemplateRows:'repeat(4,1fr)',position:'relative',zIndex:3,height:'100%' }}>
@@ -596,34 +602,37 @@ export default function TableTennisChess() {
   const renderSpinGauge = () => {
     if (!ball) return null;
     const rpm = SPIN_RPM[ball.spin] ?? 0;
-    const pct = (rpm / MAX_RPM) * 50 + 50; // 0~100% 중 50이 중앙
     const absRpm = Math.abs(rpm);
     const isBack = rpm < -1000;
     const isTop  = rpm >  1000;
     const trackColor = isBack ? '#3b82f6' : isTop ? '#f97316' : '#94a3b8';
-    const label = rpm === 0 ? '너클 (무회전)' : `${isBack ? '하회전' : isTop ? '상회전' : '미약'} ${absRpm.toLocaleString()} RPM`;
-    const fillLeft  = rpm < 0 ? `${pct}%` : '50%';
-    const fillWidth = `${(absRpm / MAX_RPM) * 50}%`;
+    // 세로 게이지: 위=상회전, 아래=하회전
+    // pct: 위쪽이 100%, 아래쪽이 0% → 상회전이면 위로, 하회전이면 아래로
+    const needlePct = ((-rpm) / MAX_RPM) * 50 + 50; // 위=0%, 아래=100%
+    const fillTop   = rpm > 0 ? `${needlePct}%` : '50%';
+    const fillHeight = `${(absRpm / MAX_RPM) * 50}%`;
+    const rpmText = absRpm >= 100 ? `${absRpm.toLocaleString()}` : '0';
     return (
-      <div style={{ width:'100%', padding:'6px 0 2px' }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'4px' }}>
-          <span style={{ fontSize:'9px', color:'#60a5fa', fontWeight:700 }}>⬇ 하회전</span>
-          <span style={{ fontSize:'10px', fontWeight:900, color: trackColor, letterSpacing:'0.5px' }}>{label}</span>
-          <span style={{ fontSize:'9px', color:'#f97316', fontWeight:700 }}>상회전 ⬆</span>
-        </div>
-        <div style={{ position:'relative', height:'10px', background:'rgba(15,23,42,0.8)', borderRadius:'5px', overflow:'visible', border:'1px solid rgba(255,255,255,0.08)' }}>
+      <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'3px', height:'100%', padding:'4px 0' }}>
+        {/* 상회전 라벨 */}
+        <span style={{ fontSize:'8px', color:'#f97316', fontWeight:700, lineHeight:1 }}>상⬆</span>
+        {/* 세로 트랙 */}
+        <div style={{ position:'relative', flex:1, width:'10px', background:'rgba(15,23,42,0.8)', borderRadius:'5px', border:'1px solid rgba(255,255,255,0.12)', overflow:'visible', minHeight:'60px' }}>
           {/* 배경 그라디언트 */}
-          <div style={{ position:'absolute', inset:0, borderRadius:'4px', background:'linear-gradient(to right, rgba(59,130,246,0.15), rgba(15,23,42,0) 50%, rgba(249,115,22,0.15))', pointerEvents:'none' }} />
+          <div style={{ position:'absolute', inset:0, borderRadius:'4px', background:'linear-gradient(to bottom, rgba(249,115,22,0.2), rgba(15,23,42,0) 50%, rgba(59,130,246,0.2))', pointerEvents:'none' }} />
           {/* 중앙 기준선 */}
-          <div style={{ position:'absolute', left:'50%', top:'-3px', bottom:'-3px', width:'2px', background:'rgba(255,255,255,0.25)', transform:'translateX(-50%)', borderRadius:'1px' }} />
+          <div style={{ position:'absolute', top:'50%', left:'-3px', right:'-3px', height:'2px', background:'rgba(255,255,255,0.25)', transform:'translateY(-50%)', borderRadius:'1px' }} />
           {/* RPM 채움 바 */}
           {absRpm > 0 && (
-            <div style={{ position:'absolute', top:'1px', bottom:'1px', left:fillLeft, width:fillWidth, background:`linear-gradient(${isBack?'to left':'to right'}, ${trackColor}44, ${trackColor})`, borderRadius:'3px', boxShadow:`0 0 8px 2px ${trackColor}55`, transition:'all 0.4s ease' }} />
+            <div style={{ position:'absolute', left:'1px', right:'1px', top:fillTop, height:fillHeight, background:`linear-gradient(${isTop?'to top':'to bottom'}, ${trackColor}44, ${trackColor})`, borderRadius:'3px', boxShadow:`0 0 8px 2px ${trackColor}55`, transition:'all 0.4s ease' }} />
           )}
           {/* 바늘 */}
-          <div style={{ position:'absolute', left:`${pct}%`, top:'-4px', bottom:'-4px', width:'4px', background:'#fff', borderRadius:'2px', transform:'translateX(-50%)', boxShadow:`0 0 6px 2px ${trackColor}, 0 0 2px rgba(255,255,255,0.9)`, transition:'left 0.4s ease', zIndex:2 }} />
+          <div style={{ position:'absolute', top:`${needlePct}%`, left:'-4px', right:'-4px', height:'4px', background:'#fff', borderRadius:'2px', transform:'translateY(-50%)', boxShadow:`0 0 6px 2px ${trackColor}, 0 0 2px rgba(255,255,255,0.9)`, transition:'top 0.4s ease', zIndex:2 }} />
         </div>
-        {/* RPM 영향 미리보기 (해당 기술 있을 때) */}
+        {/* 하회전 라벨 */}
+        <span style={{ fontSize:'8px', color:'#60a5fa', fontWeight:700, lineHeight:1 }}>하⬇</span>
+        {/* RPM 수치 */}
+        <span style={{ fontSize:'8px', fontWeight:900, color:trackColor, lineHeight:1, writingMode:'horizontal-tb', textAlign:'center', whiteSpace:'nowrap' }}>{rpmText}</span>
       </div>
     );
   };
@@ -815,13 +824,6 @@ export default function TableTennisChess() {
             })}
             <div ref={logsEndRef} />
           </div>
-
-          {/* RPM 스핀 게이지 */}
-          {ball && (
-            <div style={{ background:'rgba(15,23,42,0.85)',borderRadius:'10px',padding:'8px 12px',border:'1px solid rgba(148,163,184,0.1)' }}>
-              {renderSpinGauge()}
-            </div>
-          )}
 
           {/* 액션 패널 */}
           <div style={{ background:'rgba(30,41,59,0.92)',borderRadius:'12px',padding:'10px',border:'1px solid rgba(148,163,184,0.1)',minHeight:'110px',display:'flex',alignItems:'center',justifyContent:'center' }}>
