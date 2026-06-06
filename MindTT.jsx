@@ -132,20 +132,22 @@ const getSpeedModifier = (action, spin) => {
   return modifiers[action] ?? 0;
 };
 
-// 서브 카테고리 정의
+// 서브 카테고리 정의 (4열: 짧은하·긴하·짧은횡하·긴횡하 / 짧은상·긴상·짧은횡상·긴횡상 / 짧은횡·긴횡·짧은너클·긴너클)
 const ALL_SERVES = [
-  { label:'짧은 하회전',   action:'SERVE_SHORT_BACK',      color:'#1e40af', sub:'짧·하' },
-  { label:'짧은 상회전',   action:'SERVE_SHORT_TOP',       color:'#78350f', sub:'짧·상' },
-  { label:'짧은 횡회전',   action:'SERVE_SHORT_SIDE',      color:'#4c1d95', sub:'짧·횡' },
-  { label:'짧은 횡하',     action:'SERVE_SHORT_SIDE_BACK', color:'#5b21b6', sub:'짧·횡하' },
-  { label:'짧은 횡상',     action:'SERVE_SHORT_SIDE_TOP',  color:'#6d28d9', sub:'짧·횡상' },
-  { label:'너클',          action:'SERVE_KNUCKLE',          color:'#374151', sub:'무회전' },
-  { label:'더블바운드',    action:'SERVE_DOUBLE_BOUNCE',   color:'#065f46', sub:'짧·2바' },
-  { label:'긴 상회전',     action:'SERVE_LONG_FAST',       color:'#7f1d1d', sub:'긴·빠름' },
-  { label:'긴 하회전',     action:'SERVE_LONG_BACK',       color:'#1e3a5f', sub:'긴·하' },
-  { label:'긴 횡회전',     action:'SERVE_LONG_SIDE',       color:'#312e81', sub:'긴·횡' },
+  { label:'짧은 하회전', action:'SERVE_SHORT_BACK',      color:'#1e40af', sub:'짧·하' },
+  { label:'긴 하회전',   action:'SERVE_LONG_BACK',       color:'#1e3a5f', sub:'긴·하' },
+  { label:'짧은 횡하',  action:'SERVE_SHORT_SIDE_BACK', color:'#5b21b6', sub:'짧·횡하' },
+  { label:'긴 횡하',    action:'SERVE_LONG_SIDE_BACK',  color:'#3b0764', sub:'긴·횡하' },
+  { label:'짧은 상회전', action:'SERVE_SHORT_TOP',       color:'#78350f', sub:'짧·상' },
+  { label:'긴 상회전',   action:'SERVE_LONG_FAST',       color:'#7f1d1d', sub:'긴·상' },
+  { label:'짧은 횡상',  action:'SERVE_SHORT_SIDE_TOP',  color:'#6d28d9', sub:'짧·횡상' },
+  { label:'긴 횡상',    action:'SERVE_LONG_SIDE_TOP',   color:'#4c1d95', sub:'긴·횡상' },
+  { label:'짧은 횡회전', action:'SERVE_SHORT_SIDE',      color:'#1e4d2b', sub:'짧·횡' },
+  { label:'긴 횡회전',   action:'SERVE_LONG_SIDE',       color:'#14532d', sub:'긴·횡' },
+  { label:'짧은 너클',  action:'SERVE_KNUCKLE',          color:'#374151', sub:'짧·무' },
+  { label:'긴 너클',    action:'SERVE_LONG_KNUCKLE',     color:'#1f2937', sub:'긴·무' },
 ];
-const SERVES_SHORT = ALL_SERVES; // legacy compat
+const SERVES_SHORT = ALL_SERVES;
 const SERVES_LONG  = ALL_SERVES;
 
 export default function TableTennisChess() {
@@ -327,8 +329,10 @@ export default function TableTennisChess() {
       case 'SERVE_LONG_SIDE':       useSkill(action); pushHistory('긴 횡회전', action); addLog('나: [긴 횡회전] — 깊은 사이드스핀', 'player'); setBall({ row: 0, col, spin: 'LONG_SIDE' }); setTurn('OPPONENT'); break;
       case 'SERVE_SHORT_SIDE_BACK': useSkill(action); pushHistory('횡하회전', action); addLog('나: [짧은 횡하회전] — 복합 회전', 'player'); setBall({ row: 1, col, spin: 'SIDESPIN_BACK' }); setTurn('OPPONENT'); break;
       case 'SERVE_SHORT_SIDE_TOP':  useSkill(action); pushHistory('횡상회전', action); addLog('나: [짧은 횡상회전] — 복합 속임수', 'player'); setBall({ row: 1, col, spin: 'SIDESPIN_TOP' }); setTurn('OPPONENT'); break;
-      case 'SERVE_KNUCKLE':         useSkill(action); pushHistory('너클', action); addLog('나: [너클] — 무회전 불규칙!', 'player'); setBall({ row: 1, col, spin: 'KNUCKLE' }); setTurn('OPPONENT'); break;
-      case 'SERVE_DOUBLE_BOUNCE':   useSkill(action); pushHistory('더블 바운드', action); addLog('나: [더블 바운드] — 두 번 튕김!', 'player'); setBall({ row: 1, col, spin: 'DOUBLE_BOUNCE' }); setTurn('OPPONENT'); break;
+      case 'SERVE_KNUCKLE':         useSkill(action); pushHistory('짧은 너클', action); addLog('나: [짧은 너클] — 짧은 무회전!', 'player'); setBall({ row: 1, col, spin: 'KNUCKLE' }); setTurn('OPPONENT'); break;
+      case 'SERVE_LONG_KNUCKLE':    useSkill(action); pushHistory('긴 너클', action); addLog('나: [긴 너클] — 깊은 무회전!', 'player'); setBall({ row: 0, col, spin: 'KNUCKLE' }); setTurn('OPPONENT'); break;
+      case 'SERVE_LONG_SIDE_BACK':  useSkill(action); pushHistory('긴 횡하회전', action); addLog('나: [긴 횡하회전] — 깊은 복합 회전', 'player'); setBall({ row: 0, col, spin: 'SIDESPIN_BACK' }); setTurn('OPPONENT'); break;
+      case 'SERVE_LONG_SIDE_TOP':   useSkill(action); pushHistory('긴 횡상회전', action); addLog('나: [긴 횡상회전] — 깊은 속임수', 'player'); setBall({ row: 0, col, spin: 'SIDESPIN_TOP' }); setTurn('OPPONENT'); break;
       case 'STOP': {
         useSkill(action); pushHistory('스톱', action);
         const stopP = applyBonus(ball?.row >= 3 ? 0.35 : 0.75, 'STOP');
@@ -852,7 +856,7 @@ export default function TableTennisChess() {
   const renderServePanel = () => {
     return (
       <div style={{ width:'100%' }}>
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:'5px' }}>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr 1fr', gap:'5px' }}>
           {ALL_SERVES.map(({ label, action, color, sub }) => {
             const lv = skills[action]?.lv ?? 1;
             return (
