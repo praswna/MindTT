@@ -814,7 +814,7 @@ export default function TableTennisChess() {
     if (row===2 && spin==='SIDESPIN_BACK') return shortBackBtns;
     if (row===2 && spin==='SIDESPIN_TOP')  return shortTopBtns;
     if (row===2 && spin==='KNUCKLE')       return [mk('스톱','STOP','#334155','조심'), mk('쇼트','SHORT_BLOCK','#1e3a5f','짧게'), mk('보스커트','PUSH','#334155','깊이'), mk('플릭 ⚡','FLICK','#92400e','⚠불규칙')];
-    if (row===2 && spin==='DOUBLE_BOUNCE') return [mk('스톱','STOP','#334155','⚠매우짧음'), mk('쇼트','SHORT_BLOCK','#1e3a5f','빠르게'), mk('플릭 ⚡','FLICK','#92400e','⚠어려움')];
+    if (row===2 && spin==='DOUBLE_BOUNCE') return [mk('스톱','STOP','#334155','⚠매우짧음'), mk('쇼트','SHORT_BLOCK','#1e3a5f','빠르게'), mk('커트','CUT','#1e3a2f','짧게 깎기'), mk('플릭 ⚡','FLICK','#92400e','⚠어려움')];
     if (row===2 && (spin==='BLOCK_RETURN'||spin==='FLOAT')) return [mk('💥 스매시 찬스!','SMASH','#854d0e',null,true)];
 
     // 긴공 리시브
