@@ -373,8 +373,8 @@ export default function TableTennisChess() {
         useSkill(action); pushHistory('쇼트', action);
         const shortP = applyBonus(ball?.row >= 3 ? 0.45 : 0.82, 'SHORT_BLOCK');
         if (Math.random() < shortP) {
-          addLog(`나: [쇼트] 짧게 밀어냅니다.${ball?.row >= 3 ? ' (롱→쇼트 성공!)' : ''}`, 'player');
-          setBall({ row: 1, col, spin: 'BACKSPIN' });
+          addLog(`나: [쇼트] 길게 눌러 보냅니다.${ball?.row >= 3 ? ' (롱→쇼트 성공!)' : ''}`, 'player');
+          setBall({ row: 0, col, spin: 'BACKSPIN' });
         } else {
           addLog('나: [쇼트 실패] 네트에 걸렸습니다!', 'player');
           opponentScores(); return;
@@ -819,7 +819,7 @@ export default function TableTennisChess() {
     const { row, spin } = ball;
 
     // 짧은공 리시브
-    const shortDefensive = [mk('스톱','STOP','#334155','네트 앞'), mk('쇼트','SHORT_BLOCK','#1e3a5f','짧게 밀기'), mk('보스커트','PUSH','#334155','깊이 찌르기')];
+    const shortDefensive = [mk('스톱','STOP','#334155','네트 앞'), mk('쇼트','SHORT_BLOCK','#1e3a5f','길게 눌러'), mk('보스커트','PUSH','#334155','깊이 찌르기')];
     const shortAttack    = [mk('플릭 ⚡','FLICK','#92400e','선제공격'), mk('치키타','CHIQUITA','#7c3aed','BH 커브')];
     const shortBackBtns  = [...shortDefensive, ...shortAttack];
     const shortTopBtns   = [...shortAttack, mk('스톱 ⚠','STOP','#1e293b','공 뜰 수 있음'), mk('보스커트','PUSH','#334155','길게 밀기')];
