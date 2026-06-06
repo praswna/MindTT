@@ -65,6 +65,7 @@ export default function TableTennisChess() {
   const [skills, setSkills]               = useState(initSkillData());
   const [levelUpFlash, setLevelUpFlash]   = useState(null);
   const [serveTab, setServeTab]           = useState('SHORT'); // 'SHORT' | 'LONG'
+  const [pendingAction, setPendingAction] = useState(null);
   const [moveHistory, setMoveHistory]         = useState([]);
   const [opponentHistory, setOpponentHistory] = useState([]);
   const logsEndRef = useRef(null);
@@ -79,6 +80,9 @@ export default function TableTennisChess() {
     setMoveHistory(p => [{ label, pct }, ...p].slice(0, 8));
   };
   const pushOpponentHistory = (label) => setOpponentHistory(p => [{ label }, ...p].slice(0, 8));
+
+  // 상대 턴 전환 시 카운터 세부 선택 초기화
+  useEffect(() => { if (turn === 'OPPONENT') setPendingAction(null); }, [turn]);
 
   // ── 경험치 처리 ──
   const useSkill = (key) => {
@@ -173,6 +177,23 @@ export default function TableTennisChess() {
   // ── 플레이어 액션 ──
   const handlePlayerAction = (action) => {
     if (turn !== 'PLAYER') return;
+
+    // 카운터 세부 선택
+    if (action === 'COUNTER_DRIVE') { setPendingAction('COUNTER_DRIVE'); return; }
+    if (action === 'CANCEL') { setPendingAction(null); return; }
+    if (action === 'COUNTER_STABLE') {
+      setPendingAction(null);
+      pushHistory('안정적 카운터', 'COUNTER_DRIVE');
+      executeAttack('COUNTER_DRIVE', applyBonus(0.68, 'COUNTER_DRIVE'), '🌀 안정적 카운터');
+      return;
+    }
+    if (action === 'COUNTER_POWER') {
+      setPendingAction(null);
+      pushHistory('파워 카운터', 'COUNTER_DRIVE');
+      executeAttack('POWER_DRIVE', applyBonus(0.42, 'POWER_DRIVE'), '💥 파워 카운터');
+      return;
+    }
+
     const col = rc();
 
     const ATTACK_DEFS = {
@@ -546,6 +567,14 @@ export default function TableTennisChess() {
   const getButtons = () => {
     // 서브 탭 UI는 별도 렌더러에서 처리 → 여기서는 null 반환
     if (!ball) return null;
+
+    // 카운터 세부 선택 중
+    if (pendingAction === 'COUNTER_DRIVE') return [
+      { label:'🌀 안정적 카운터', action:'COUNTER_STABLE', color:'#4a1d96', sub:'성공률 높음', full:true },
+      { label:'💥 파워드라이브',   action:'COUNTER_POWER',  color:'#7f1d1d', sub:'강타·고위험', full:true },
+      { label:'↩️ 취소',          action:'CANCEL',          color:'#1e293b', sub:null,         full:true },
+    ];
+
     const { row, spin } = ball;
 
     // 짧은공 리시브
