@@ -60,6 +60,26 @@ const SPIN_RPM = {
 };
 const MAX_RPM = 5500;   // 프로 최대 ~9,000 × 0.6
 
+// 스핀별 공 속도 (km/h, 프로 수준의 약 60%)
+const BALL_SPEED = {
+  FAST_TOP:      90,  // 빠른 상회전 서브
+  POWER_SPIN:    85,  // 파워 드라이브
+  LOOP_SPIN:     72,  // 루프
+  TOPSPIN:       68,  // 일반 드라이브
+  LONG_BACK:     58,  // 긴 하회전
+  LONG_SIDE:     56,  // 긴 횡회전
+  SIDESPIN_TOP:  52,  // 횡상회전
+  SIDESPIN:      50,  // 횡회전
+  SIDESPIN_BACK: 46,  // 횡하회전
+  BACKSPIN:      42,  // 하회전
+  KNUCKLE:       38,  // 너클
+  BLOCK_RETURN:  34,  // 블록 뜬공
+  DOUBLE_BOUNCE: 28,  // 더블 바운드
+  LOB_SPIN:      22,  // 로빙
+  FLOAT:         18,  // 뜬 공
+};
+const MAX_SPEED = 100;
+
 // RPM이 각 기술 성공률에 미치는 영향
 const getRpmModifier = (action, spin) => {
   if (!spin) return 0;
@@ -593,6 +613,64 @@ export default function TableTennisChess() {
   };
 
   // ── RPM 게이지 렌더러 ──
+  // ── 속도 위젯 (왼쪽 상단) ──
+  const renderSpeedWidget = () => {
+    if (!ball) return null;
+    const speed = BALL_SPEED[ball.spin] ?? 0;
+    const pct   = speed / MAX_SPEED; // 0~1
+    const meta  = spinMeta[ball.spin] || spinMeta.BACKSPIN;
+    const col   = meta.color;
+    // 스피드미터: 반원 호 (아래 반원 제외, 왼쪽 하단 → 오른쪽 하단, 210°~330° 범위)
+    const S = 72, cx = 36, cy = 40;
+    const R = 26;
+    const startDeg = 210, sweepDeg = 120;
+    const endDeg   = startDeg + sweepDeg * pct;
+    const toRad = d => d * Math.PI / 180;
+    const arcX = (d) => cx + R * Math.cos(toRad(d));
+    const arcY = (d) => cy + R * Math.sin(toRad(d));
+    // 배경 호 path (전체 range)
+    const bgX1 = arcX(startDeg), bgY1 = arcY(startDeg);
+    const bgX2 = arcX(startDeg + sweepDeg), bgY2 = arcY(startDeg + sweepDeg);
+    const bgPath = `M ${bgX1} ${bgY1} A ${R} ${R} 0 0 1 ${bgX2} ${bgY2}`;
+    // 채움 호 path (현재 속도)
+    const fgX2 = arcX(endDeg), fgY2 = arcY(endDeg);
+    const lgArc = sweepDeg * pct > 180 ? 1 : 0;
+    const fgPath = `M ${bgX1} ${bgY1} A ${R} ${R} 0 ${lgArc} 1 ${fgX2} ${fgY2}`;
+    // 바늘 끝 좌표
+    const needleX = cx + (R - 4) * Math.cos(toRad(endDeg));
+    const needleY = cy + (R - 4) * Math.sin(toRad(endDeg));
+    // 속도 색상: 느림=파랑, 중간=초록, 빠름=빨강
+    const speedColor = speed >= 70 ? '#ef4444' : speed >= 50 ? '#f97316' : speed >= 30 ? '#facc15' : '#60a5fa';
+    return (
+      <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'4px' }}>
+        <div style={{ position:'relative', width:`${S}px`, height:`${S}px` }}>
+          <svg width={S} height={S} style={{ position:'absolute', inset:0 }}>
+            {/* 외곽 원 */}
+            <circle cx={cx} cy={cy} r={34} fill="rgba(15,23,42,0.9)" stroke={speedColor} strokeWidth="1.5" strokeOpacity="0.4"/>
+            <circle cx={cx} cy={cy} r={34} fill="none" stroke={speedColor} strokeWidth="8" strokeOpacity="0.06"/>
+            {/* 배경 트랙 */}
+            <path d={bgPath} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="4" strokeLinecap="round"/>
+            {/* 속도 채움 */}
+            {speed > 0 && (
+              <path d={fgPath} fill="none" stroke={speedColor} strokeWidth="4" strokeLinecap="round"
+                style={{ filter:`drop-shadow(0 0 4px ${speedColor})` }}/>
+            )}
+            {/* 중앙 속도 숫자 */}
+            <text x={cx} y={cy + 2} textAnchor="middle" dominantBaseline="middle"
+              fill={speedColor} fontSize="14" fontWeight="900" fontFamily="inherit"
+              style={{ filter:`drop-shadow(0 0 6px ${speedColor})` }}>
+              {speed}
+            </text>
+            <text x={cx} y={cy + 16} textAnchor="middle" fill="rgba(255,255,255,0.45)" fontSize="7" fontFamily="inherit">km/h</text>
+          </svg>
+        </div>
+        <span style={{ fontSize:'9px', fontWeight:900, color:speedColor, textAlign:'center', whiteSpace:'nowrap', textShadow:`0 0 8px ${speedColor}` }}>
+          {speed >= 70 ? '🔴 고속' : speed >= 50 ? '🟠 중속' : speed >= 30 ? '🟡 저속' : '🔵 느림'}
+        </span>
+      </div>
+    );
+  };
+
   // ── 360도 회전 화살표 스핀 위젯 ──
   const renderSpinWidget = () => {
     if (!ball) return null;
@@ -802,8 +880,10 @@ export default function TableTennisChess() {
         <div style={{ width:'100%',maxWidth:'480px',display:'flex',flexDirection:'column',gap:'6px' }}>
           {/* 탁구대 + 양옆 점수 */}
           <div style={{ display:'flex',alignItems:'stretch',gap:'6px' }}>
-            {/* 상대 점수 (왼쪽) — 히스토리 위, 점수 아래 */}
+            {/* 상대 점수 (왼쪽) — 속도 위젯 + 히스토리 위, 점수 아래 */}
             <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',gap:'4px',paddingBottom:'4px',overflow:'hidden' }}>
+              {/* 속도 위젯 */}
+              {ball && <div style={{ marginBottom:'2px' }}>{renderSpeedWidget()}</div>}
               <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',gap:'2px',width:'100%',overflow:'hidden',marginBottom:'2px' }}>
                 {opponentHistory.map((h,i) => (
                   <span key={i} style={{ fontSize:'8px',color:i===0?'#fca5a5':'rgba(148,163,184,0.45)',fontWeight:i===0?700:400,textAlign:'center',lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:'100%' }}>{h.label}</span>
