@@ -581,64 +581,9 @@ export default function TableTennisChess() {
             return (
               <div key={`${r}-${c}`} style={{ position:'relative',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',borderRight:c===0?'1px solid rgba(255,255,255,0.2)':'none',borderBottom:r<3?'1px solid rgba(255,255,255,0.12)':'none',borderTop:r===2?'3px solid rgba(255,255,255,0.85)':'none',background:here?'rgba(255,255,255,0.08)':isFrom?'rgba(255,255,255,0.03)':'transparent' }}>
                 {!here && <span style={{ fontSize:'9px',color:'rgba(255,255,255,0.12)',fontWeight:700,userSelect:'none' }}>{r<=1?'상대':'내'}{r%2===0?' 긴':' 짧'}</span>}
-                {here && meta && (() => {
-                  const rpm = SPIN_RPM[ball.spin] ?? 0;
-                  const absRpm = Math.abs(rpm);
-                  const rpmLabel = absRpm >= 100 ? `${absRpm.toLocaleString()} RPM` : '0 RPM';
-                  const spinColor = meta.color;
-                  // 회전 방향 화살표 SVG (공 위에 곡선 원호 화살표)
-                  const spin = ball.spin;
-                  const isTop   = ['TOPSPIN','LOOP_SPIN','POWER_SPIN','FAST_TOP','SIDESPIN_TOP'].includes(spin);
-                  const isBack  = ['BACKSPIN','LONG_BACK','SIDESPIN_BACK'].includes(spin);
-                  const isSide  = ['SIDESPIN','LONG_SIDE'].includes(spin);
-                  const isNone  = spin === 'KNUCKLE';
-                  // SVG 원호 화살표: cx=18, cy=18, r=12
-                  // 상회전: 반시계방향 상단 호, 하회전: 시계방향 하단 호
-                  const S = 36; // SVG 크기
-                  const cx = 18, cy = 18, R = 11;
-                  // 원호 path: 상회전 → 위쪽, 하회전 → 아래쪽, 횡회전 → 옆
-                  let arcPath = null, arrowTip = null;
-                  if (isTop) {
-                    // 상단 반원 (반시계): 오른쪽→위→왼쪽
-                    arcPath = `M ${cx+R} ${cy} A ${R} ${R} 0 0 0 ${cx-R} ${cy}`;
-                    arrowTip = { x: cx-R, y: cy, dx: 0, dy: 3 };
-                  } else if (isBack) {
-                    // 하단 반원 (시계): 왼쪽→아래→오른쪽
-                    arcPath = `M ${cx-R} ${cy} A ${R} ${R} 0 0 0 ${cx+R} ${cy}`;
-                    arrowTip = { x: cx+R, y: cy, dx: 0, dy: -3 };
-                  } else if (isSide) {
-                    // 오른쪽 반원 (시계): 위→오른쪽→아래
-                    arcPath = `M ${cx} ${cy-R} A ${R} ${R} 0 0 1 ${cx} ${cy+R}`;
-                    arrowTip = { x: cx, y: cy+R, dx: -3, dy: 0 };
-                  }
-                  return (
-                    <div style={{ display:'flex',flexDirection:'column',alignItems:'center',gap:'2px' }}>
-                      {/* 공 + 회전 화살표 */}
-                      <div style={{ position:'relative', width:`${S}px`, height:`${S}px` }}>
-                        {/* 공 */}
-                        <div style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)', width:'22px', height:'22px', borderRadius:'50%', background:spinColor, border:'1.5px solid rgba(255,255,255,0.5)', boxShadow:`0 0 14px 5px ${meta.glow}`, animation:meta.pulse?'bpulse 0.9s infinite':'bbounce 0.55s infinite alternate' }} />
-                        {/* 회전 화살표 */}
-                        {arcPath && (
-                          <svg width={S} height={S} style={{ position:'absolute', inset:0, pointerEvents:'none' }}>
-                            <defs>
-                              <marker id="spinarrow" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto">
-                                <polygon points="0,0 5,2.5 0,5" fill={spinColor} opacity="0.95"/>
-                              </marker>
-                            </defs>
-                            <path d={arcPath} fill="none" stroke={spinColor} strokeWidth="2.2" opacity="0.85" markerEnd="url(#spinarrow)" strokeLinecap="round"/>
-                          </svg>
-                        )}
-                        {isNone && (
-                          <svg width={S} height={S} style={{ position:'absolute', inset:0, pointerEvents:'none' }}>
-                            <line x1={cx-R} y1={cy} x2={cx+R} y2={cy} stroke={spinColor} strokeWidth="2" opacity="0.7" strokeDasharray="3 2"/>
-                          </svg>
-                        )}
-                      </div>
-                      {/* RPM 수치 */}
-                      <span style={{ fontSize:'8px', fontWeight:700, color:spinColor, background:'rgba(0,0,0,0.7)', padding:'1px 5px', borderRadius:'3px', whiteSpace:'nowrap', lineHeight:1.3 }}>{rpmLabel}</span>
-                    </div>
-                  );
-                })()}
+                {here && meta && (
+                  <div style={{ width:'26px',height:'26px',borderRadius:'50%',background:meta.color,border:'1.5px solid rgba(255,255,255,0.4)',boxShadow:`0 0 18px 7px ${meta.glow}`,animation:meta.pulse?'bpulse 0.9s infinite':'bbounce 0.55s infinite alternate' }} />
+                )}
               </div>
             );
           }))}
@@ -648,40 +593,71 @@ export default function TableTennisChess() {
   };
 
   // ── RPM 게이지 렌더러 ──
-  const renderSpinGauge = () => {
+  // ── 360도 회전 화살표 스핀 위젯 ──
+  const renderSpinWidget = () => {
     if (!ball) return null;
     const rpm = SPIN_RPM[ball.spin] ?? 0;
     const absRpm = Math.abs(rpm);
-    const isBack = rpm < -1000;
-    const isTop  = rpm >  1000;
-    const trackColor = isBack ? '#3b82f6' : isTop ? '#f97316' : '#94a3b8';
-    // 세로 게이지: 위=상회전, 아래=하회전
-    // pct: 위쪽이 100%, 아래쪽이 0% → 상회전이면 위로, 하회전이면 아래로
-    const needlePct = ((-rpm) / MAX_RPM) * 50 + 50; // 위=0%, 아래=100%
-    const fillTop   = rpm > 0 ? `${needlePct}%` : '50%';
-    const fillHeight = `${(absRpm / MAX_RPM) * 50}%`;
-    const rpmText = absRpm >= 100 ? `${absRpm.toLocaleString()}` : '0';
+    const meta = spinMeta[ball.spin] || spinMeta.BACKSPIN;
+    const spinColor = meta.color;
+    const rpmText = absRpm >= 100 ? `${absRpm.toLocaleString()} RPM` : '0 RPM';
+    // 스핀 종류별 화살표 각도 (0°=위/상회전, 시계방향)
+    const SPIN_ANGLE = {
+      TOPSPIN:180, LOOP_SPIN:180, POWER_SPIN:180, FAST_TOP:180, LOB_SPIN:180, BLOCK_RETURN:180,
+      BACKSPIN:0, LONG_BACK:0, DOUBLE_BOUNCE:0,
+      SIDESPIN:270, LONG_SIDE:270,
+      SIDESPIN_BACK:315, SIDESPIN_TOP:225,
+      KNUCKLE:null, FLOAT:null,
+    };
+    const angle = SPIN_ANGLE[ball.spin];
+    const S = 72, cx = 36, cy = 36, arrowLen = 22;
+    // 화살표 끝점 계산 (각도 → 좌표, 0°=위)
+    const rad = angle != null ? (angle - 90) * Math.PI / 180 : 0;
+    const ax = cx + Math.cos(rad) * arrowLen;
+    const ay = cy + Math.sin(rad) * arrowLen;
+    // 화살표 시작점 (반대 방향)
+    const bx = cx - Math.cos(rad) * (arrowLen * 0.5);
+    const by = cy - Math.sin(rad) * (arrowLen * 0.5);
     return (
-      <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'3px', height:'100%', padding:'4px 0' }}>
-        {/* 상회전 라벨 */}
-        <span style={{ fontSize:'8px', color: isTop ? '#f97316' : 'rgba(148,163,184,0.4)', fontWeight: isTop ? 700 : 400, lineHeight:1 }}>상⬆</span>
-        {/* 세로 트랙 */}
-        <div style={{ position:'relative', flex:1, width:'10px', background:'rgba(15,23,42,0.8)', borderRadius:'5px', border:'1px solid rgba(255,255,255,0.12)', overflow:'visible', minHeight:'60px' }}>
-          {/* 배경 그라디언트 */}
-          <div style={{ position:'absolute', inset:0, borderRadius:'4px', background:'linear-gradient(to bottom, rgba(249,115,22,0.2), rgba(15,23,42,0) 50%, rgba(59,130,246,0.2))', pointerEvents:'none' }} />
-          {/* 중앙 기준선 */}
-          <div style={{ position:'absolute', top:'50%', left:'-3px', right:'-3px', height:'2px', background:'rgba(255,255,255,0.25)', transform:'translateY(-50%)', borderRadius:'1px' }} />
-          {/* RPM 채움 바 */}
-          {absRpm > 0 && (
-            <div style={{ position:'absolute', left:'1px', right:'1px', top:fillTop, height:fillHeight, background:`linear-gradient(${isTop?'to top':'to bottom'}, ${trackColor}44, ${trackColor})`, borderRadius:'3px', boxShadow:`0 0 8px 2px ${trackColor}55`, transition:'all 0.4s ease' }} />
+      <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:'4px' }}>
+        {/* 원형 공 UI */}
+        <div style={{ position:'relative', width:`${S}px`, height:`${S}px` }}>
+          {/* 배경 원 */}
+          <svg width={S} height={S} style={{ position:'absolute', inset:0 }}>
+            {/* 외곽 원 */}
+            <circle cx={cx} cy={cy} r={34} fill="rgba(15,23,42,0.9)" stroke={spinColor} strokeWidth="1.5" strokeOpacity="0.4"/>
+            {/* 공 내부 희미한 십자선 */}
+            <line x1={cx} y1={cx-28} x2={cx} y2={cx+28} stroke="rgba(255,255,255,0.07)" strokeWidth="1"/>
+            <line x1={cx-28} y1={cy} x2={cx+28} y2={cy} stroke="rgba(255,255,255,0.07)" strokeWidth="1"/>
+            {/* 글로우 효과 */}
+            <circle cx={cx} cy={cy} r={34} fill="none" stroke={spinColor} strokeWidth="8" strokeOpacity="0.06"/>
+          </svg>
+          {/* 공 (가운데 작은 원) */}
+          <div style={{ position:'absolute', top:'50%', left:'50%', transform:'translate(-50%,-50%)', width:'16px', height:'16px', borderRadius:'50%', background:spinColor, boxShadow:`0 0 10px 4px ${meta.glow}`, opacity:0.9 }} />
+          {/* 회전 화살표 */}
+          {angle != null ? (
+            <svg width={S} height={S} style={{ position:'absolute', inset:0, pointerEvents:'none' }}>
+              <defs>
+                <marker id="sw-arrow" markerWidth="6" markerHeight="6" refX="6" refY="3" orient="auto">
+                  <polygon points="0,0 6,3 0,6" fill={spinColor}/>
+                </marker>
+              </defs>
+              {/* 화살표 선 */}
+              <line x1={bx} y1={by} x2={ax} y2={ay}
+                stroke={spinColor} strokeWidth="2.5" strokeLinecap="round"
+                markerEnd="url(#sw-arrow)"
+                style={{ filter:`drop-shadow(0 0 4px ${spinColor})` }}/>
+            </svg>
+          ) : (
+            /* 너클: X 표시 */
+            <svg width={S} height={S} style={{ position:'absolute', inset:0, pointerEvents:'none' }}>
+              <line x1={cx-10} y1={cy-10} x2={cx+10} y2={cy+10} stroke={spinColor} strokeWidth="2.5" strokeLinecap="round" opacity="0.7"/>
+              <line x1={cx+10} y1={cy-10} x2={cx-10} y2={cy+10} stroke={spinColor} strokeWidth="2.5" strokeLinecap="round" opacity="0.7"/>
+            </svg>
           )}
-          {/* 바늘 */}
-          <div style={{ position:'absolute', top:`${needlePct}%`, left:'-4px', right:'-4px', height:'4px', background:'#fff', borderRadius:'2px', transform:'translateY(-50%)', boxShadow:`0 0 6px 2px ${trackColor}, 0 0 2px rgba(255,255,255,0.9)`, transition:'top 0.4s ease', zIndex:2 }} />
         </div>
-        {/* 하회전 라벨 */}
-        <span style={{ fontSize:'8px', color: isBack ? '#3b82f6' : 'rgba(148,163,184,0.4)', fontWeight: isBack ? 700 : 400, lineHeight:1 }}>하⬇</span>
         {/* RPM 수치 */}
-        <span style={{ fontSize:'8px', fontWeight:900, color:trackColor, lineHeight:1, writingMode:'horizontal-tb', textAlign:'center', whiteSpace:'nowrap' }}>{rpmText}</span>
+        <span style={{ fontSize:'9px', fontWeight:900, color:spinColor, textAlign:'center', whiteSpace:'nowrap', textShadow:`0 0 8px ${spinColor}` }}>{rpmText}</span>
       </div>
     );
   };
@@ -844,8 +820,10 @@ export default function TableTennisChess() {
             </div>
             {/* 탁구대 */}
             <div style={{ flex:'0 0 56%' }}>{renderTableWithPath()}</div>
-            {/* 내 점수 (오른쪽) — 히스토리 위, 점수 아래 */}
+            {/* 내 점수 (오른쪽) — 스핀 위젯 + 히스토리 위, 점수 아래 */}
             <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',gap:'4px',paddingBottom:'4px',overflow:'hidden' }}>
+              {/* 360도 회전 화살표 스핀 위젯 */}
+              {ball && <div style={{ marginBottom:'2px' }}>{renderSpinWidget()}</div>}
               <div style={{ flex:1,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'flex-end',gap:'2px',width:'100%',overflow:'hidden',marginBottom:'2px' }}>
                 {moveHistory.map((h,i) => (
                   <span key={i} style={{ fontSize:'8px',color:i===0?'#93c5fd':'rgba(148,163,184,0.45)',fontWeight:i===0?700:400,textAlign:'center',lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:'100%' }}>
